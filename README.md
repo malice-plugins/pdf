@@ -1,2 +1,2 @@
-# malice-pdfid
-Malice PDFiD Plugin
+# malice-pdf
+Malice PDF Plugin
