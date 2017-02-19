@@ -21,7 +21,7 @@ RUN apk --update add --no-cache -t .build-deps \
   && pip install --upgrade pip wheel \
   && echo " [*] Install requirements..." \
   # && pip install -U -r requirements.txt \
-  && ln -s ./pdf.py /bin/pdfscan \
+  && ln -s /src/github.com/maliceio/malice-pdf/pdf.py /bin/pdfscan \
   && apk del --purge .build-deps
 
 WORKDIR /malware
