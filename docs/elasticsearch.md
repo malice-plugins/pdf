@@ -3,7 +3,7 @@ To write results to [ElasticSearch](https://www.elastic.co/products/elasticsearc
 
 ```bash
 $ docker volume create --name malice
-$ docker run -d --name elastic \
+$ docker run -d --name elasticsearch \
                 -p 9200:9200 \
                 -v malice:/usr/share/elasticsearch/data \
                  blacktop/elasticsearch
