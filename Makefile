@@ -2,6 +2,8 @@ REPO=malice-plugins/pdf
 ORG=malice
 NAME=pdf
 VERSION=$(shell cat VERSION)
+MALWARE="befb88b89c2eb401900a68e9f5b78764203f2b48264fcc3f7121bf04a57fd408"
+
 
 all: build size test
 
@@ -27,12 +29,12 @@ test:
 	@echo "===> ${NAME} --help"
 	@sleep 10; docker run --rm $(ORG)/$(NAME):$(VERSION)
 	@echo "===> ${NAME} malware test"
-	@test -f befb88b89c2eb401900a68e9f5b78764203f2b48264fcc3f7121bf04a57fd408 || wget https://github.com/maliceio/malice-av/raw/master/samples/befb88b89c2eb401900a68e9f5b78764203f2b48264fcc3f7121bf04a57fd408
-	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) -V befb88b89c2eb401900a68e9f5b78764203f2b48264fcc3f7121bf04a57fd408 | jq . > docs/results.json
+	@test -f $(MALWARE) || wget https://github.com/maliceio/malice-av/raw/master/samples/$(MALWARE)
+	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) -V $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 	@echo "===> ${NAME} pull MarkDown from elasticsearch results"
 	@http localhost:9200/malice/_search | jq . > docs/elastic.json
-	@cat docs/elastic.json | jq -r '.hits.hits[] ._source.plugins.av.${NAME}.markdown' > docs/SAMPLE.md
+	@cat docs/elastic.json | jq -r '.hits.hits[] ._source.plugins.pdf.${NAME}.markdown' > docs/SAMPLE.md
 	@docker rm -f elasticsearch
 
 .PHONY: run
@@ -67,7 +69,7 @@ clean: ## Clean docker image and stop all running containers
 	docker-clean stop
 	docker rmi $(ORG)/$(NAME):$(VERSION) || true
 	docker rmi $(ORG)/$(NAME):dev || true
-	rm befb88b89c2eb401900a68e9f5b78764203f2b48264fcc3f7121bf04a57fd408 || true
+	rm $(MALWARE) || true
 
 # Absolutely awesome: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
