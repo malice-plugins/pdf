@@ -4,7 +4,6 @@ __description__ = 'Tool to test a PDF file'
 __author__ = 'Didier Stevens'
 __version__ = '0.2.4'
 __date__ = '2018/01/29'
-
 """
 
 Tool to test a PDF file
@@ -81,6 +80,7 @@ if sys.version_info[0] >= 3:
 else:
     import ConfigParser
 
+
 #Convert 2 Bytes If Python 3
 def C2BIP3(string):
     if sys.version_info[0] > 2:
@@ -88,7 +88,9 @@ def C2BIP3(string):
     else:
         return string
 
+
 class cBinaryFile:
+
     def __init__(self, file):
         self.file = file
         if file == '':
@@ -151,7 +153,9 @@ class cBinaryFile:
         bytes.reverse()
         self.ungetted.extend(bytes)
 
+
 class cPDFDate:
+
     def __init__(self):
         self.state = 0
 
@@ -218,14 +222,17 @@ class cPDFDate:
                     self.state = 0
                     return None
 
+
 def fEntropy(countByte, countTotal):
     x = float(countByte) / countTotal
     if x > 0:
-        return - x * math.log(x, 2)
+        return -x * math.log(x, 2)
     else:
         return 0.0
 
+
 class cEntropy:
+
     def __init__(self):
         self.allBucket = [0 for i in range(0, 256)]
         self.streamBucket = [0 for i in range(0, 256)]
@@ -245,11 +252,16 @@ class cEntropy:
         streamCount = sum(self.streamBucket)
         nonStreamCount = sum(self.nonStreamBucket)
         if streamCount == 0:
-            return (allCount, sum(map(lambda x: fEntropy(x, allCount), self.allBucket)), streamCount, None, nonStreamCount, sum(map(lambda x: fEntropy(x, nonStreamCount), self.nonStreamBucket)))
+            return (allCount, sum(map(lambda x: fEntropy(x, allCount), self.allBucket)), streamCount, None,
+                    nonStreamCount, sum(map(lambda x: fEntropy(x, nonStreamCount), self.nonStreamBucket)))
         else:
-            return (allCount, sum(map(lambda x: fEntropy(x, allCount), self.allBucket)), streamCount, sum(map(lambda x: fEntropy(x, streamCount), self.streamBucket)), nonStreamCount, sum(map(lambda x: fEntropy(x, nonStreamCount), self.nonStreamBucket)))
+            return (allCount, sum(map(lambda x: fEntropy(x, allCount), self.allBucket)), streamCount,
+                    sum(map(lambda x: fEntropy(x, streamCount), self.streamBucket)), nonStreamCount,
+                    sum(map(lambda x: fEntropy(x, nonStreamCount), self.nonStreamBucket)))
+
 
 class cPDFEOF:
+
     def __init__(self):
         self.token = ''
         self.cntEOFs = 0
@@ -287,6 +299,7 @@ class cPDFEOF:
         else:
             self.token = ''
 
+
 def FindPDFHeaderRelaxed(oBinaryFile):
     bytes = oBinaryFile.bytes(1024)
     index = ''.join([chr(byte) for byte in bytes]).find('%PDF')
@@ -299,11 +312,13 @@ def FindPDFHeaderRelaxed(oBinaryFile):
     oBinaryFile.ungets(bytes[endHeader:])
     return (bytes[0:endHeader], ''.join([chr(byte) for byte in bytes[index:endHeader]]))
 
+
 def Hexcode2String(char):
     if type(char) == int:
         return '#%02x' % char
     else:
         return char
+
 
 def SwapCase(char):
     if type(char) == int:
@@ -311,11 +326,14 @@ def SwapCase(char):
     else:
         return char.swapcase()
 
+
 def HexcodeName2String(hexcodeName):
     return ''.join(map(Hexcode2String, hexcodeName))
 
+
 def SwapName(wordExact):
     return map(SwapCase, wordExact)
+
 
 def UpdateWords(word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut):
     if word != '':
@@ -338,7 +356,8 @@ def UpdateWords(word, wordExact, slash, words, hexcode, allNames, lastName, insi
                         oEntropy.removeInsideStream(ord(char))
                 insideStream = False
         if fOut != None:
-            if slash == '/' and '/' + word in ('/JS', '/JavaScript', '/AA', '/OpenAction', '/JBIG2Decode', '/RichMedia', '/Launch'):
+            if slash == '/' and '/' + word in ('/JS', '/JavaScript', '/AA', '/OpenAction', '/JBIG2Decode', '/RichMedia',
+                                               '/Launch'):
                 wordExactSwapped = HexcodeName2String(SwapName(wordExact))
                 fOut.write(C2BIP3(wordExactSwapped))
                 print('/%s -> /%s' % (HexcodeName2String(wordExact), wordExactSwapped))
@@ -346,13 +365,17 @@ def UpdateWords(word, wordExact, slash, words, hexcode, allNames, lastName, insi
                 fOut.write(C2BIP3(HexcodeName2String(wordExact)))
     return ('', [], False, lastName, insideStream)
 
+
 class cCVE_2009_3459:
+
     def __init__(self):
         self.count = 0
 
     def Check(self, lastName, word):
-        if (lastName == '/Colors' and word.isdigit() and int(word) > 2^24): # decided to alert when the number of colors is expressed with more than 3 bytes
+        if (lastName == '/Colors' and word.isdigit() and
+                int(word) > 2 ^ 24):  # decided to alert when the number of colors is expressed with more than 3 bytes
             self.count += 1
+
 
 def XMLAddAttribute(xmlDoc, name, value=None):
     att = xmlDoc.createAttribute(name)
@@ -360,6 +383,7 @@ def XMLAddAttribute(xmlDoc, name, value=None):
     if value != None:
         att.nodeValue = value
     return att
+
 
 def ParseINIFile():
     oConfigParser = ConfigParser.ConfigParser(allow_no_value=True)
@@ -371,6 +395,7 @@ def ParseINIFile():
             if not key in keywords:
                 keywords.append(key)
     return keywords
+
 
 def PDFiD(file, allNames=False, extraData=False, disarm=False, force=False):
     """Example of XML output:
@@ -402,27 +427,28 @@ def PDFiD(file, allNames=False, extraData=False, disarm=False, force=False):
     hexcode = False
     lastName = ''
     insideStream = False
-    keywords = ['obj',
-                'endobj',
-                'stream',
-                'endstream',
-                'xref',
-                'trailer',
-                'startxref',
-                '/Page',
-                '/Encrypt',
-                '/ObjStm',
-                '/JS',
-                '/JavaScript',
-                '/AA',
-                '/OpenAction',
-                '/AcroForm',
-                '/JBIG2Decode',
-                '/RichMedia',
-                '/Launch',
-                '/EmbeddedFile',
-                '/XFA',
-               ]
+    keywords = [
+        'obj',
+        'endobj',
+        'stream',
+        'endstream',
+        'xref',
+        'trailer',
+        'startxref',
+        '/Page',
+        '/Encrypt',
+        '/ObjStm',
+        '/JS',
+        '/JavaScript',
+        '/AA',
+        '/OpenAction',
+        '/AcroForm',
+        '/JBIG2Decode',
+        '/RichMedia',
+        '/Launch',
+        '/EmbeddedFile',
+        '/XFA',
+    ]
     words = {}
     dates = []
     for extrakeyword in ParseINIFile():
@@ -483,7 +509,9 @@ def PDFiD(file, allNames=False, extraData=False, disarm=False, force=False):
                 d1 = oBinaryFile.byte()
                 if d1 != None:
                     d2 = oBinaryFile.byte()
-                    if d2 != None and (chr(d1) >= '0' and chr(d1) <= '9' or chr(d1).upper() >= 'A' and chr(d1).upper() <= 'F') and (chr(d2) >= '0' and chr(d2) <= '9' or chr(d2).upper() >= 'A' and chr(d2).upper() <= 'F'):
+                    if d2 != None and (chr(d1) >= '0' and chr(d1) <= '9' or chr(d1).upper() >= 'A' and
+                                       chr(d1).upper() <= 'F') and (chr(d2) >= '0' and chr(d2) <= '9' or
+                                                                    chr(d2).upper() >= 'A' and chr(d2).upper() <= 'F'):
                         word += chr(int(chr(d1) + chr(d2), 16))
                         wordExact.append(int(chr(d1) + chr(d2), 16))
                         hexcode = True
@@ -496,18 +524,21 @@ def PDFiD(file, allNames=False, extraData=False, disarm=False, force=False):
                     else:
                         oBinaryFile.unget(d2)
                         oBinaryFile.unget(d1)
-                        (word, wordExact, hexcode, lastName, insideStream) = UpdateWords(word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut)
+                        (word, wordExact, hexcode, lastName, insideStream) = UpdateWords(
+                            word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut)
                         if disarm:
                             fOut.write(C2BIP3(char))
                 else:
                     oBinaryFile.unget(d1)
-                    (word, wordExact, hexcode, lastName, insideStream) = UpdateWords(word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut)
+                    (word, wordExact, hexcode, lastName, insideStream) = UpdateWords(
+                        word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut)
                     if disarm:
                         fOut.write(C2BIP3(char))
             else:
                 oCVE_2009_3459.Check(lastName, word)
 
-                (word, wordExact, hexcode, lastName, insideStream) = UpdateWords(word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut)
+                (word, wordExact, hexcode, lastName, insideStream) = UpdateWords(
+                    word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut)
                 if char == '/':
                     slash = '/'
                 else:
@@ -525,7 +556,8 @@ def PDFiD(file, allNames=False, extraData=False, disarm=False, force=False):
                 oPDFEOF.parse(char)
 
             byte = oBinaryFile.byte()
-        (word, wordExact, hexcode, lastName, insideStream) = UpdateWords(word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut)
+        (word, wordExact, hexcode, lastName, insideStream) = UpdateWords(
+            word, wordExact, slash, words, hexcode, allNames, lastName, insideStream, oEntropy, fOut)
 
         # check to see if file ended with %%EOF.  If so, we can reset charsAfterLastEOF and add one to EOF count.  This is never performed in
         # the parse function because it never gets called due to hitting the end of file.
@@ -557,7 +589,7 @@ def PDFiD(file, allNames=False, extraData=False, disarm=False, force=False):
     attCountNonStream = xmlDoc.createAttribute('NonStreamCount')
     xmlDoc.documentElement.setAttributeNode(attCountNonStream)
     if oEntropy != None:
-        (countAll, entropyAll , countStream, entropyStream, countNonStream, entropyNonStream) = oEntropy.calc()
+        (countAll, entropyAll, countStream, entropyStream, countNonStream, entropyNonStream) = oEntropy.calc()
         attEntropyAll.nodeValue = '%f' % entropyAll
         attCountAll.nodeValue = '%d' % countAll
         if entropyStream == None:
@@ -642,8 +674,10 @@ def PDFiD(file, allNames=False, extraData=False, disarm=False, force=False):
         eleDate.setAttributeNode(att)
     return xmlDoc
 
+
 def PDFiD2String(xmlDoc, nozero, force):
-    result = 'PDFiD %s %s\n' % (xmlDoc.documentElement.getAttribute('Version'), xmlDoc.documentElement.getAttribute('Filename'))
+    result = 'PDFiD %s %s\n' % (xmlDoc.documentElement.getAttribute('Version'),
+                                xmlDoc.documentElement.getAttribute('Filename'))
     if xmlDoc.documentElement.getAttribute('ErrorOccured') == 'True':
         return result + '***Error occured***\n%s\n' % xmlDoc.documentElement.getAttribute('ErrorMessage')
     if not force and xmlDoc.documentElement.getAttribute('IsPDF') == 'False':
@@ -658,23 +692,31 @@ def PDFiD2String(xmlDoc, nozero, force):
     if xmlDoc.documentElement.getAttribute('CountEOF') != '':
         result += ' %-16s %7d\n' % ('%%EOF', int(xmlDoc.documentElement.getAttribute('CountEOF')))
     if xmlDoc.documentElement.getAttribute('CountCharsAfterLastEOF') != '':
-        result += ' %-16s %7d\n' % ('After last %%EOF', int(xmlDoc.documentElement.getAttribute('CountCharsAfterLastEOF')))
+        result += ' %-16s %7d\n' % ('After last %%EOF',
+                                    int(xmlDoc.documentElement.getAttribute('CountCharsAfterLastEOF')))
     for node in xmlDoc.documentElement.getElementsByTagName('Dates')[0].childNodes:
         result += ' %-23s %s\n' % (node.getAttribute('Value'), node.getAttribute('Name'))
     if xmlDoc.documentElement.getAttribute('TotalEntropy') != '':
-        result += ' Total entropy:           %s (%10s bytes)\n' % (xmlDoc.documentElement.getAttribute('TotalEntropy'), xmlDoc.documentElement.getAttribute('TotalCount'))
+        result += ' Total entropy:           %s (%10s bytes)\n' % (xmlDoc.documentElement.getAttribute('TotalEntropy'),
+                                                                   xmlDoc.documentElement.getAttribute('TotalCount'))
     if xmlDoc.documentElement.getAttribute('StreamEntropy') != '':
-        result += ' Entropy inside streams:  %s (%10s bytes)\n' % (xmlDoc.documentElement.getAttribute('StreamEntropy'), xmlDoc.documentElement.getAttribute('StreamCount'))
+        result += ' Entropy inside streams:  %s (%10s bytes)\n' % (xmlDoc.documentElement.getAttribute('StreamEntropy'),
+                                                                   xmlDoc.documentElement.getAttribute('StreamCount'))
     if xmlDoc.documentElement.getAttribute('NonStreamEntropy') != '':
-        result += ' Entropy outside streams: %s (%10s bytes)\n' % (xmlDoc.documentElement.getAttribute('NonStreamEntropy'), xmlDoc.documentElement.getAttribute('NonStreamCount'))
+        result += ' Entropy outside streams: %s (%10s bytes)\n' % (xmlDoc.documentElement.getAttribute(
+            'NonStreamEntropy'), xmlDoc.documentElement.getAttribute('NonStreamCount'))
     return result
 
+
 class cCount():
+
     def __init__(self, count, hexcode):
         self.count = count
         self.hexcode = hexcode
 
+
 class cPDFiD():
+
     def __init__(self, xmlDoc, force):
         self.version = xmlDoc.documentElement.getAttribute('Version')
         self.filename = xmlDoc.documentElement.getAttribute('Filename')
@@ -689,7 +731,8 @@ class cPDFiD():
         self.header = xmlDoc.documentElement.getAttribute('Header')
         self.keywords = {}
         for node in xmlDoc.documentElement.getElementsByTagName('Keywords')[0].childNodes:
-            self.keywords[node.getAttribute('Name')] = cCount(int(node.getAttribute('Count')), int(node.getAttribute('HexcodeCount')))
+            self.keywords[node.getAttribute('Name')] = cCount(
+                int(node.getAttribute('Count')), int(node.getAttribute('HexcodeCount')))
         self.obj = self.keywords['obj']
         self.endobj = self.keywords['endobj']
         self.stream = self.keywords['stream']
@@ -712,6 +755,7 @@ class cPDFiD():
         self.xfa = self.keywords['/XFA']
         self.colors_gt_2_24 = self.keywords['/Colors > 2^24']
 
+
 def Print(lines, options):
     print(lines)
     filename = None
@@ -724,16 +768,19 @@ def Print(lines, options):
         logfile.write(lines + '\n')
         logfile.close()
 
+
 def Quote(value, separator, quote):
     if isinstance(value, str):
         if separator in value:
             return quote + value + quote
     return value
 
+
 def MakeCSVLine(fields, separator=';', quote='"'):
     formatstring = separator.join([field[0] for field in fields])
     strings = [Quote(field[1], separator, quote) for field in fields]
     return formatstring % tuple(strings)
+
 
 def ProcessFile(filename, options, plugins):
     xmlDoc = PDFiD(filename, options.all, options.extra, options.disarm, options.force)
@@ -792,7 +839,9 @@ def ProcessFile(filename, options, plugins):
                     if oPDFiD.errorOccured:
                         Print(MakeCSVLine((('%s', filename), ('%s', cPlugin.name), ('%s', 'Error occured'))), options)
                     if not oPDFiD.isPDF:
-                        Print(MakeCSVLine((('%s', filename), ('%s', cPlugin.name), ('%s', 'Not a PDF document'))), options)
+                        Print(
+                            MakeCSVLine((('%s', filename), ('%s', cPlugin.name), ('%s', 'Not a PDF document'))),
+                            options)
                 else:
                     Print(PDFiD2String(xmlDoc, options.nozero, options.force), options)
 
@@ -805,10 +854,13 @@ def Scan(directory, options, plugins):
         else:
             ProcessFile(directory, options, plugins)
     except Exception as e:
-#        print directory
+        #        print directory
         print(e)
+
+
 #        print(sys.exc_info()[2])
 #        print traceback.format_exc()
+
 
 #function derived from: http://blog.9bplus.com/pdfidpy-output-to-json
 def PDFiD2JSON(xmlDoc, force):
@@ -839,20 +891,40 @@ def PDFiD2JSON(xmlDoc, force):
             hexCount = int(node.getAttribute('HexcodeCount'))
         else:
             hexCount = 0
-        keyword = { 'count':count, 'hexcodecount':hexCount, 'name':name }
+        keyword = {'count': count, 'hexcodecount': hexCount, 'name': name}
         keywords.append(keyword)
 
     #grab all date information
     for node in xmlDoc.documentElement.getElementsByTagName('Dates')[0].childNodes:
         name = node.getAttribute('Name')
         value = node.getAttribute('Value')
-        date = { 'name':name, 'value':value }
+        date = {'name': name, 'value': value}
         dates.append(date)
 
-    data = { 'countEof':countEof, 'countChatAfterLastEof':countChatAfterLastEof, 'totalEntropy':totalEntropy, 'streamEntropy':streamEntropy, 'nonStreamEntropy':nonStreamEntropy, 'errorOccured':errorOccured, 'errorMessage':errorMessage, 'filename':filename, 'header':header, 'isPdf':isPdf, 'version':version, 'entropy':entropy, 'keywords': { 'keyword': keywords }, 'dates': { 'date':dates} }
-    complete = [ { 'pdfid' : data} ]
+    data = {
+        'countEof': countEof,
+        'countChatAfterLastEof': countChatAfterLastEof,
+        'totalEntropy': totalEntropy,
+        'streamEntropy': streamEntropy,
+        'nonStreamEntropy': nonStreamEntropy,
+        'errorOccured': errorOccured,
+        'errorMessage': errorMessage,
+        'filename': filename,
+        'header': header,
+        'isPdf': isPdf,
+        'version': version,
+        'entropy': entropy,
+        'keywords': {
+            'keyword': keywords
+        },
+        'dates': {
+            'date': dates
+        }
+    }
+    complete = [{'pdfid': data}]
     result = json.dumps(complete)
     return result
+
 
 def File2Strings(filename):
     try:
@@ -860,11 +932,12 @@ def File2Strings(filename):
     except:
         return None
     try:
-        return list(map(lambda line:line.rstrip('\n'), f.readlines()))
+        return list(map(lambda line: line.rstrip('\n'), f.readlines()))
     except:
         return None
     finally:
         f.close()
+
 
 def ProcessAt(argument):
     if argument.startswith('@'):
@@ -876,16 +949,20 @@ def ProcessAt(argument):
     else:
         return [argument]
 
+
 def AddPlugin(cClass):
     global plugins
 
     plugins.append(cClass)
 
+
 def ExpandFilenameArguments(filenames):
     return list(collections.OrderedDict.fromkeys(sum(map(glob.glob, sum(map(ProcessAt, filenames), [])), [])))
 
+
 class cPluginParent():
     onlyValidPDF = True
+
 
 def LoadPlugins(plugins, verbose):
     if plugins == '':
@@ -906,6 +983,7 @@ def LoadPlugins(plugins, verbose):
             if verbose:
                 raise e
 
+
 def PDFiDMain(filenames, options):
     global plugins
     plugins = []
@@ -923,6 +1001,7 @@ def PDFiDMain(filenames, options):
         else:
             ProcessFile(filename, options, plugins)
 
+
 def Main():
     moredesc = '''
 
@@ -935,21 +1014,36 @@ Source code put in the public domain by Didier Stevens, no Copyright
 Use at your own risk
 https://DidierStevens.com'''
 
-    oParser = optparse.OptionParser(usage='usage: %prog [options] [pdf-file|zip-file|url|@file] ...\n' + __description__ + moredesc, version='%prog ' + __version__)
+    oParser = optparse.OptionParser(
+        usage='usage: %prog [options] [pdf-file|zip-file|url|@file] ...\n' + __description__ + moredesc,
+        version='%prog ' + __version__)
     oParser.add_option('-s', '--scan', action='store_true', default=False, help='scan the given directory')
     oParser.add_option('-a', '--all', action='store_true', default=False, help='display all the names')
     oParser.add_option('-e', '--extra', action='store_true', default=False, help='display extra data, like dates')
-    oParser.add_option('-f', '--force', action='store_true', default=False, help='force the scan of the file, even without proper %PDF header')
+    oParser.add_option(
+        '-f',
+        '--force',
+        action='store_true',
+        default=False,
+        help='force the scan of the file, even without proper %PDF header')
     oParser.add_option('-d', '--disarm', action='store_true', default=False, help='disable JavaScript and auto launch')
-    oParser.add_option('-p', '--plugins', type=str, default='', help='plugins to load (separate plugins with a comma , ; @file supported)')
+    oParser.add_option(
+        '-p',
+        '--plugins',
+        type=str,
+        default='',
+        help='plugins to load (separate plugins with a comma , ; @file supported)')
     oParser.add_option('-c', '--csv', action='store_true', default=False, help='output csv data when using plugins')
     oParser.add_option('-m', '--minimumscore', type=float, default=0.0, help='minimum score for plugin results output')
-    oParser.add_option('-v', '--verbose', action='store_true', default=False, help='verbose (will also raise catched exceptions)')
+    oParser.add_option(
+        '-v', '--verbose', action='store_true', default=False, help='verbose (will also raise catched exceptions)')
     oParser.add_option('-S', '--select', type=str, default='', help='selection expression')
-    oParser.add_option('-n', '--nozero', action='store_true', default=False, help='supress output for counts equal to zero')
+    oParser.add_option(
+        '-n', '--nozero', action='store_true', default=False, help='supress output for counts equal to zero')
     oParser.add_option('-o', '--output', type=str, default='', help='output to log file')
     oParser.add_option('--pluginoptions', type=str, default='', help='options for the plugin')
-    oParser.add_option('-l', '--literal', action='store_true', default=False, help='take filenames literally, no wildcards')
+    oParser.add_option(
+        '-l', '--literal', action='store_true', default=False, help='take filenames literally, no wildcards')
     (options, args) = oParser.parse_args()
 
     if len(args) == 0:
@@ -969,6 +1063,7 @@ https://DidierStevens.com'''
             print(e)
             return
     PDFiDMain(filenames, options)
+
 
 if __name__ == '__main__':
     Main()
