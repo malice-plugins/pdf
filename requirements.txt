@@ -1,2 +1,3 @@
-python-spidermonkey
+#python-spidermonkey
 nose
+elasticsearch>=6.0.0,<7.0.0

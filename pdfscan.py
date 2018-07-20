@@ -7,24 +7,28 @@ __author__ = 'blacktop - <https://github.com/blacktop>'
 __version__ = '0.1.0'
 __date__ = '2018/01/29'
 
+import hashlib
 import json
 import logging
 import optparse
 import os
 import re
+import sys
 import tempfile
 import unicodedata
 
+from elastic import Elastic
 from pdfid import pdfid
 from pdfparser import pdf_parser
+
+log = logging.getLogger(__name__)
 
 
 class PDF(object):
 
     def __init__(self, file_path):
-        self.oPDFiD = None
-        self.log = logging.getLogger(__name__)
         self.file = file_path
+        self.oPDFiD = None
         self.init_logging()
 
     def init_logging(self):
@@ -33,7 +37,15 @@ class PDF(object):
         ch.setLevel(logging.DEBUG)
         ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         # add ch to logger
-        self.log.addHandler(ch)
+        log.addHandler(ch)
+
+    @staticmethod
+    def sha256_checksum(filename, block_size=65536):
+        sha256 = hashlib.sha256()
+        with open(filename, 'rb') as f:
+            for block in iter(lambda: f.read(block_size), b''):
+                sha256.update(block)
+        return sha256.hexdigest()
 
     def pdf_id(self):
 
@@ -42,24 +54,24 @@ class PDF(object):
         #################
         def nameobfuscation():
             if sum([oCount.hexcode for oCount in self.oPDFiD.keywords.values()]) > 0:
-                return dict(score=1.0)
+                return dict(score=1.0, reason='hex encoded flag(s) detected')
             else:
-                return dict(score=0.0)
+                return dict(score=0.0, reason='no hex encoded flags detected')
 
         def embeddedfile():
             if '/EmbeddedFile' in self.oPDFiD.keywords and self.oPDFiD.keywords['/EmbeddedFile'].count > 0:
                 if self.oPDFiD.keywords['/EmbeddedFile'].hexcode > 0:
-                    return dict(score=1.0)
+                    return dict(score=1.0, reason='EmbeddedFile flag(s) are hex encoded')
                 else:
-                    return dict(score=0.9)
+                    return dict(score=0.9, reason='EmbeddedFile flag(s) detected')
             else:
-                return dict(score=0.0)
+                return dict(score=0.0, reason='no EmbeddedFile flag(s) detected')
 
         def triage():
             for keyword in ('/JS', '/JavaScript', '/AA', '/OpenAction', '/AcroForm', '/JBIG2Decode', '/RichMedia',
                             '/Launch', '/EmbeddedFile', '/XFA', '/Colors > 2^24'):
                 if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
-                    return dict(score=1.0, reason='Sample is likely malicious and requires further analysis')
+                    return dict(score=1.0, reason='sample is likely malicious and requires further analysis')
                 for keyword in ('/ObjStm',):
                     if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
                         return dict(score=0.75, reason='/ObjStm detected, analyze sample with pdfid-objstm.bat')
@@ -74,37 +86,52 @@ class PDF(object):
                     return dict(score=0.5, reason='sample is likely not malicious but requires further analysis')
             return dict(score=0.0, reason='sample is likely not malicious')
 
-        # Run the parser - Returns an XML DOM Instance.
-        pdf_data = pdfid.PDFiD(self.file, False, True)
+        def suspicious():
+            return {}
 
-        # This converts to JSON.
+        if not os.path.isfile(self.file):
+            raise Exception("{} is not a valid file".format(self.file))
+
+        # run the parser - returns an XML DOM instance
+        pdf_data = pdfid.PDFiD(self.file, False, True)
+        self.oPDFiD = pdfid.cPDFiD(pdf_data, True)
+
+        # convert to JSON
         pdf_json = pdfid.PDFiD2JSON(pdf_data, True)
         pdf_dict = json.loads(pdf_json)[0]
 
-        self.oPDFiD = pdfid.cPDFiD(pdf_data, True)
-        # print 'Name Obfuscation: {}'.format(nameobfuscation())
-        # print 'Embedded File: {}'.format(embeddedfile())
-        # print 'Triage: {}'.format(triage())
-        plugins = {'nameobfuscation': nameobfuscation(), 'embeddedfile': embeddedfile(), 'triage': triage()}
-        pdf_dict['plugins'] = plugins
+        heuristics = {
+            'nameobfuscation': nameobfuscation(),
+            'embeddedfile': embeddedfile(),
+            'triage': triage(),
+            'suspicious': suspicious()
+        }
+        pdf_dict['pdfid']['heuristics'] = heuristics
 
-        print json.dumps(pdf_dict)
+        # clean up JSON
+        pdf_dict['pdfid'].pop('filename', None)
+
+        return pdf_dict
+
+    def pdf_parser(self):
+        return {}
+
+    def peepdf(self):
+        return {}
 
 
 def main():
+    MALICE_PLUGIN_NAME = 'pdf'
     moredesc = '''
 
-Arguments:
-pdf-file and zip-file can be a single file, several files, and/or @file
-@file: run PDFiD on each file listed in the text file specified
-wildcards are supported
+Version: v{}, BuildTime: {}
 
-Source code put in the public domain by Didier Stevens, no Copyright
-Use at your own risk
-https://DidierStevens.com'''
+Author:
+  {}
+'''.format(__version__, __date__, __author__)
 
     oParser = optparse.OptionParser(
-        usage='Usage: malice/pdf [OPTIONS] COMMAND [arg...]\n' + __description__ + moredesc,
+        usage='Usage: malice/pdf [OPTIONS] COMMAND [arg...]\n\n' + __description__ + moredesc,
         version='%prog ' + __version__)
     oParser.add_option(
         '-c',
@@ -119,17 +146,28 @@ https://DidierStevens.com'''
     (options, args) = oParser.parse_args()
 
     if len(args) == 0:
-        return
+        oParser.print_help()
+        sys.exit(1)
     else:
         try:
-            pass
-            # file_path = ExpandFilenameArguments(args)
-        except Exception as e:
-            print(e)
-            return
+            pdf = PDF(args[0])
 
-    pdf = PDF("test/pdf-doc-vba-eicar-dropper.pdf")
-    pdf.pdf_id()
+            pdf_dict = {}
+            pdf_dict[MALICE_PLUGIN_NAME] = pdf.pdf_id()
+            pdf_dict[MALICE_PLUGIN_NAME]['streams'] = pdf.pdf_parser()
+            pdf_dict[MALICE_PLUGIN_NAME]['peepdf'] = pdf.peepdf()
+
+            malice_json = {'plugins': {'doc': pdf_dict}}
+
+            # write to elasticsearch
+            e = Elastic("127.0.0.1")
+            e.write(id=pdf.sha256_checksum(pdf.file), doc=malice_json)
+
+            print json.dumps(malice_json)
+
+        except Exception as e:
+            log.exception("failed to run malice plugin: {}".format(MALICE_PLUGIN_NAME))
+            return
 
 
 if __name__ == '__main__':

@@ -58,3 +58,5 @@ target/
 
 *.bu
 .circleci/build_num
+.idea
+venv
