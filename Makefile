@@ -3,7 +3,7 @@ ORG=malice
 NAME=pdf
 CATEGORY=doc
 VERSION=$(shell cat VERSION)
-MALWARE="befb88b89c2eb401900a68e9f5b78764203f2b48264fcc3f7121bf04a57fd408"
+MALWARE="test/pdf-doc-vba-eicar-dropper.pdf"
 
 
 all: build size test test-markdown
@@ -30,7 +30,6 @@ test:
 	@echo "===> ${NAME} --help"
 	@sleep 10; docker run --rm $(ORG)/$(NAME):$(VERSION)
 	@echo "===> ${NAME} malware test"
-	@test -f $(MALWARE) || wget https://github.com/maliceio/malice-av/raw/master/samples/$(MALWARE)
 	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) -V $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
