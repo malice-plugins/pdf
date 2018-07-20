@@ -10,12 +10,13 @@ __date__ = '2018/01/29'
 import hashlib
 import json
 import logging
-import optparse
 import os
 import re
 import sys
 import tempfile
 import unicodedata
+
+import click
 
 from elastic import Elastic
 from pdfid import pdfid
@@ -26,15 +27,15 @@ log = logging.getLogger(__name__)
 
 class PDF(object):
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, verbose):
         self.file = file_path
         self.oPDFiD = None
-        self.init_logging()
+        self.init_logging(verbose)
 
-    def init_logging(self):
+    def init_logging(self, verbose):
         # create console handler and set level to debug
         ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
+        ch.setLevel(verbose)
         ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         # add ch to logger
         log.addHandler(ch)
@@ -120,55 +121,72 @@ class PDF(object):
         return {}
 
 
-def main():
-    MALICE_PLUGIN_NAME = 'pdf'
-    moredesc = '''
+def print_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo('v{}'.format(__version__))
+    ctx.exit()
 
-Version: v{}, BuildTime: {}
 
-Author:
-  {}
-'''.format(__version__, __date__, __author__)
+@click.group(context_settings=dict(help_option_names=['-h', '--help']))
+@click.option(
+    '--version', is_flag=True, callback=print_version, expose_value=False, is_eager=True, help='print the version')
+def pdf():
+    """Malice PDF Plugin
 
-    oParser = optparse.OptionParser(
-        usage='Usage: malice/pdf [OPTIONS] COMMAND [arg...]\n\n' + __description__ + moredesc,
-        version='%prog ' + __version__)
-    oParser.add_option(
-        '-c',
-        '--callback',
-        action='store_true',
-        default=False,
-        help='POST results to Malice webhook [$MALICE_ENDPOINT]')
-    oParser.add_option('-V', '--verbose', action='store_true', default=False, help='verbose output')
-    oParser.add_option('-S', '--select', type=str, default='', help='selection expression')
-    oParser.add_option('-o', '--output', type=str, default='', help='output to log file')
-    oParser.add_option('--pluginoptions', type=str, default='', help='options for the plugin')
-    (options, args) = oParser.parse_args()
+    Author: blacktop <https://github.com/blacktop>
+    """
 
-    if len(args) == 0:
-        oParser.print_help()
-        sys.exit(1)
-    else:
-        try:
-            pdf = PDF(args[0])
 
-            pdf_dict = {}
-            pdf_dict[MALICE_PLUGIN_NAME] = pdf.pdf_id()
-            pdf_dict[MALICE_PLUGIN_NAME]['streams'] = pdf.pdf_parser()
-            pdf_dict[MALICE_PLUGIN_NAME]['peepdf'] = pdf.peepdf()
+@pdf.command('scan', short_help='scan a file')
+@click.argument('file_path', type=click.Path(exists=True))
+@click.option('-v', '--verbose', count=True, help='verbose output')
+@click.option('-t', '--table', is_flag=True, help='output as Markdown table')
+@click.option(
+    '-x',
+    '--proxy',
+    default=lambda: os.environ.get('MALICE_PROXY', ''),
+    help='proxy settings for Malice webhook endpoint',
+    metavar='PROXY')
+@click.option(
+    '-c',
+    '--callback',
+    default=lambda: os.environ.get('MALICE_ENDPOINT', ''),
+    help='POST results back to Malice webhook',
+    metavar='ENDPOINT')
+@click.option(
+    '--elasitcsearch',
+    default=lambda: os.environ.get('MALICE_ELASTICSEARCH', '127.0.0.1'),
+    help='elasitcsearch address for Malice to store results',
+    metavar='HOST')
+def scan(file_path, verbose, table, proxy, callback, elasitcsearch, version):
+    """Malice PDF Plugin."""
 
-            malice_json = {'plugins': {'doc': pdf_dict}}
+    try:
+        pdf = PDF(file_path, verbose)
 
-            # write to elasticsearch
-            e = Elastic("127.0.0.1")
-            e.write(id=pdf.sha256_checksum(pdf.file), doc=malice_json)
+        pdf_dict = {}
+        pdf_dict['pdf'] = pdf.pdf_id()
+        pdf_dict['pdf']['streams'] = pdf.pdf_parser()
+        pdf_dict['pdf']['peepdf'] = pdf.peepdf()
 
-            print json.dumps(malice_json)
+        malice_json = {'plugins': {'doc': pdf_dict}}
 
-        except Exception as e:
-            log.exception("failed to run malice plugin: {}".format(MALICE_PLUGIN_NAME))
-            return
+        # write to elasticsearch
+        e = Elastic(elasitcsearch)
+        e.write(id=pdf.sha256_checksum(pdf.file), doc=malice_json)
+
+        print json.dumps(malice_json)
+
+    except Exception as e:
+        log.exception("failed to run malice plugin: {}".format('pdf'))
+        return
+
+
+@pdf.command('web', short_help='start web service')
+def web():
+    click.secho('This has not been implimented yet.', fg='yellow', bold=True)
 
 
 if __name__ == '__main__':
-    main()
+    pdf()
