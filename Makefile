@@ -1,18 +1,15 @@
 REPO=malice-plugins/pdf
 ORG=malice
 NAME=pdf
+CATEGORY=doc
 VERSION=$(shell cat VERSION)
 MALWARE="befb88b89c2eb401900a68e9f5b78764203f2b48264fcc3f7121bf04a57fd408"
 
 
-all: build size test
+all: build size test test-markdown
 
 build: ## Build docker image
 	docker build -t $(ORG)/$(NAME):$(VERSION) .
-
-.PHONY: dev
-dev: ## Build dev docker image
-	docker build -f Dockerfile.dev -t $(ORG)/$(NAME):dev .
 
 .PHONY: size
 size: build ## Get built image size
@@ -21,6 +18,10 @@ size: build ## Get built image size
 .PHONY: tags
 tags:
 	docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" $(ORG)/$(NAME)
+
+.PHONY: tar
+tar: build
+	@docker save $(ORG)/$(NAME):$(VERSION) -o $(NAME).tar
 
 test:
 	@echo "===> Starting elasticsearch"
@@ -32,9 +33,12 @@ test:
 	@test -f $(MALWARE) || wget https://github.com/maliceio/malice-av/raw/master/samples/$(MALWARE)
 	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) -V $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
+
+.PHONY: test-markdown
+test-markdown:
 	@echo "===> ${NAME} pull MarkDown from elasticsearch results"
 	@http localhost:9200/malice/_search | jq . > docs/elastic.json
-	@cat docs/elastic.json | jq -r '.hits.hits[] ._source.plugins.pdf.${NAME}.markdown' > docs/SAMPLE.md
+	@cat docs/elastic.json | jq '.hits.hits[] ._source.plugins.${CATEGORY}' | jq -r '.["${NAME}"].markdown' > docs/SAMPLE.md
 	@docker rm -f elasticsearch
 
 .PHONY: run
@@ -44,10 +48,6 @@ run: stop ## Run docker container
 .PHONY: ssh
 ssh: ## SSH into docker image
 	@docker run -it --rm --entrypoint=sh $(ORG)/$(NAME):$(VERSION)
-
-.PHONY: ssh-dev
-ssh-dev: ## SSH into docker image
-	@docker run -it --rm --entrypoint=sh $(ORG)/$(NAME):dev
 
 .PHONY: stop
 stop: ## Kill running docker containers
@@ -70,6 +70,7 @@ clean: ## Clean docker image and stop all running containers
 	docker rmi $(ORG)/$(NAME):$(VERSION) || true
 	docker rmi $(ORG)/$(NAME):dev || true
 	rm $(MALWARE) || true
+	rm README.md.bu || true
 
 # Absolutely awesome: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:

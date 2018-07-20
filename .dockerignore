@@ -2,13 +2,16 @@
 .git*
 .gitignore
 
-docs*
 .circleci*
+docs*
+tests*
 .vscode*
 
 README.md
 README.md.bu
-NOTES.md
 LICENSE
-Makefile
+circle.yml
 CHANGELOG.md
+Makefile
+run.sh
+results.json

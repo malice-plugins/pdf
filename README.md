@@ -1,22 +1,21 @@
-malice-pdf (WIP)
-================
+# malice-pdf (WIP)
 
-[![Circle CI](https://circleci.com/gh/malice-plugins/pdf.png?style=shield)](https://circleci.com/gh/malice-plugins/pdf) [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org) [![Docker Stars](https://img.shields.io/docker/stars/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Pulls](https://img.shields.io/docker/pulls/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Image](https://img.shields.io/badge/docker%20image-38.5MB-blue.svg)](https://hub.docker.com/r/malice/pdf/)
+[![Circle CI](https://circleci.com/gh/malice-plugins/pdf.png?style=shield)](https://circleci.com/gh/malice-plugins/pdf) [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org) [![Docker Stars](https://img.shields.io/docker/stars/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Pulls](https://img.shields.io/docker/pulls/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Image](https://img.shields.io/badge/docker%20image-47.7MB-blue.svg)](https://hub.docker.com/r/malice/pdf/)
 
 Malice PDF Plugin
 
 > This repository contains a **Dockerfile** of **malice/pdf**.
 
-___
+---
 
 ### Dependencies
 
--	[malice/alpine](https://hub.docker.com/r/malice/alpine/)
+- [malice/alpine](https://hub.docker.com/r/malice/alpine/)
 
 ### Installation
 
-1.	Install [Docker](https://www.docker.io/).
-2.	Download [trusted build](https://hub.docker.com/r/malice/pdf/) from public [DockerHub](https://hub.docker.com): `docker pull malice/pdf`
+1.  Install [Docker](https://www.docker.io/).
+2.  Download [trusted build](https://hub.docker.com/r/malice/pdf/) from public [DockerHub](https://hub.docker.com): `docker pull malice/pdf`
 
 ### Usage
 
@@ -30,15 +29,13 @@ $ docker run --rm -v /path/to/malware:/malware malice/pdf PDFFILE
 
 This will output to stdout and POST to malice results API webhook endpoint.
 
-Sample Output
--------------
+## Sample Output
 
 ### JSON:
 
 ```json
 {
-  "pdf": {
-  }
+  "pdf": {}
 }
 ```
 
@@ -50,12 +47,11 @@ Sample Output
 
 ---
 
-Documentation
--------------
+## Documentation
 
--	[To write results to ElasticSearch](https://github.com/malice-plugins/pdf/blob/master/docs/elasticsearch.md)
--	[To create a PDF scan micro-service](https://github.com/malice-plugins/pdf/blob/master/docs/web.md)
--	[To post results to a webhook](https://github.com/malice-plugins/pdf/blob/master/docs/callback.md)
+- [To write results to ElasticSearch](https://github.com/malice-plugins/pdf/blob/master/docs/elasticsearch.md)
+- [To create a PDF scan micro-service](https://github.com/malice-plugins/pdf/blob/master/docs/web.md)
+- [To post results to a webhook](https://github.com/malice-plugins/pdf/blob/master/docs/callback.md)
 
 ### Issues
 
@@ -73,7 +69,7 @@ Please update the [CHANGELOG.md](https://github.com/malice-plugins/pdf/blob/mast
 
 ### Credits
 
-Heavily (if not entirely) influenced by the [viper PDF module](https://github.com/viper-framework/viper/blob/master/viper/modules/pdf.py)
+Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucket.org/cse-assemblyline/alsvc_pdfid) and [alsvc_peepdf](https://bitbucket.org/cse-assemblyline/alsvc_peepdf)
 
 ### TODO
 
@@ -81,4 +77,4 @@ Heavily (if not entirely) influenced by the [viper PDF module](https://github.co
 
 ### License
 
-MIT Copyright (c) 2016-2017 **blacktop**
+MIT Copyright (c) 2016-2018 **blacktop**
