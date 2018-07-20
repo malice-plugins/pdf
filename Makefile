@@ -23,6 +23,7 @@ tags:
 tar: build
 	@docker save $(ORG)/$(NAME):$(VERSION) -o $(NAME).tar
 
+.PHONY: test
 test:
 	@echo "===> Starting elasticsearch"
 	@docker rm -f elasticsearch || true
@@ -64,12 +65,16 @@ ci-size: ci-build
 	@echo "===> Getting image build size from CircleCI"
 	@http "$(shell http https://circleci.com/api/v1.1/project/github/${REPO}/$(shell cat .circleci/build_num)/artifacts${CIRCLE_TOKEN} | jq '.[].url')" > .circleci/SIZE
 
-clean: ## Clean docker image and stop all running containers
+clean: clean_pyc ## Clean docker image and stop all running containers
 	docker-clean stop
 	docker rmi $(ORG)/$(NAME):$(VERSION) || true
 	docker rmi $(ORG)/$(NAME):dev || true
 	rm $(MALWARE) || true
 	rm README.md.bu || true
+
+.PHONY: clean_pyc
+clean_pyc:  ## Clean all compiled python files
+	find . -name "*.pyc" -exec rm -f {} \;
 
 # Absolutely awesome: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
