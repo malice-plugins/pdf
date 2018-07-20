@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # -*- coding: utf-8 -*-
 # This file is part of MaliceIO - https://github.com/malice-plugins/pdf
 # See the file 'LICENSE' for copying permission.
@@ -15,6 +17,7 @@ import re
 import sys
 import tempfile
 import unicodedata
+from logging.handlers import RotatingFileHandler
 
 import click
 
@@ -39,6 +42,19 @@ class PDF(object):
         ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         # add ch to logger
         log.addHandler(ch)
+
+        # get elasticsearch logger
+        es_logger = logging.getLogger('elasticsearch')
+        es_logger.propagate = False
+        es_logger.setLevel(verbose)
+        es_logger_handler = RotatingFileHandler('elasticsearch.log', maxBytes=0.5 * 10**9, backupCount=3)
+        es_logger.addHandler(es_logger_handler)
+
+        es_tracer = logging.getLogger('elasticsearch.trace')
+        es_tracer.propagate = False
+        es_tracer.setLevel(verbose)
+        es_tracer_handler = RotatingFileHandler('elasticsearch.trace.log', maxBytes=0.5 * 10**9, backupCount=3)
+        es_tracer.addHandler(es_tracer_handler)
 
     @staticmethod
     def sha256_checksum(filename, block_size=65536):
@@ -121,6 +137,39 @@ class PDF(object):
         return {}
 
 
+def json2markdown(json_data):
+    """Convert JSON output to MarkDown table"""
+    pdfid = json_data['plugins']['doc']['pdf']['pdfid']
+    print '#### PDF'
+    print
+    print '#### PDFiD'
+    print
+    print 'PDF Header: `{}`'.format(pdfid.get('header'))
+    print 'Total Entropy: {}'.format(pdfid.get('totalEntropy'))
+    print 'Entropy In Streams: {}'.format(pdfid.get('streamEntropy'))
+    print 'Entropy Out Streams: {}'.format(pdfid.get('nonStreamEntropy'))
+    print 'Count %% EOF: {}'.format(pdfid.get('countEof'))
+    print 'Data After EOF: {}'.format(pdfid.get('countChatAfterLastEof'))
+    print
+    if pdfid['heuristics']['embeddedfile'].get('score') > 0:
+        print '**Embedded File:**'
+        print ' - Score: {}'.format(pdfid['heuristics']['embeddedfile'].get('score'))
+        print ' - Reason: {}'.format(pdfid['heuristics']['embeddedfile'].get('reason'))
+    if pdfid['heuristics']['nameobfuscation'].get('score') > 0:
+        print '**Name Obfuscation:**'
+        print ' - Score: {}'.format(pdfid['heuristics']['nameobfuscation'].get('score'))
+        print ' - Reason: {}'.format(pdfid['heuristics']['nameobfuscation'].get('reason'))
+    if pdfid['heuristics']['triage'].get('score') > 0:
+        print '**Triage:**'
+        print ' - Score: {}'.format(pdfid['heuristics']['triage'].get('score'))
+        print ' - Reason: {}'.format(pdfid['heuristics']['triage'].get('reason'))
+    print
+    print '| Keyword     | Count     |'
+    print '|-------------|-----------|'
+    for keyword in pdfid['keywords'].get('keyword', []):
+        print '| {}      | {}        |'.format(keyword.get('name'), keyword.get('count'))
+
+
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
@@ -155,28 +204,31 @@ def pdf():
     help='POST results back to Malice webhook',
     metavar='ENDPOINT')
 @click.option(
-    '--elasitcsearch',
-    default=lambda: os.environ.get('MALICE_ELASTICSEARCH', '127.0.0.1'),
-    help='elasitcsearch address for Malice to store results',
+    'eshost',
+    '--elasticsearch',
+    default=lambda: os.environ.get('MALICE_ELASTICSEARCH', {'host': 'elasticsearch'}),
+    help='elasticsearch address for Malice to store results',
     metavar='HOST')
-def scan(file_path, verbose, table, proxy, callback, elasitcsearch, version):
+def scan(file_path, verbose, table, proxy, callback, eshost):
     """Malice PDF Plugin."""
 
     try:
-        pdf = PDF(file_path, verbose)
+        p = PDF(file_path, verbose)
 
-        pdf_dict = {}
-        pdf_dict['pdf'] = pdf.pdf_id()
-        pdf_dict['pdf']['streams'] = pdf.pdf_parser()
-        pdf_dict['pdf']['peepdf'] = pdf.peepdf()
+        pdf_dict = {'pdf': p.pdf_id()}
+        pdf_dict['pdf']['streams'] = p.pdf_parser()
+        pdf_dict['pdf']['peepdf'] = p.peepdf()
 
         malice_json = {'plugins': {'doc': pdf_dict}}
 
         # write to elasticsearch
-        e = Elastic(elasitcsearch)
-        e.write(id=pdf.sha256_checksum(pdf.file), doc=malice_json)
+        e = Elastic(eshost)
+        e.write(id=p.sha256_checksum(p.file), doc=malice_json)
 
-        print json.dumps(malice_json)
+        if table:
+            json2markdown(malice_json)
+        else:
+            print json.dumps(malice_json)
 
     except Exception as e:
         log.exception("failed to run malice plugin: {}".format('pdf'))

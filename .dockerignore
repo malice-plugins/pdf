@@ -6,12 +6,15 @@
 docs*
 test*
 .vscode*
+venv*
 
 README.md
 README.md.bu
+NOTES.md
 LICENSE
 circle.yml
 CHANGELOG.md
 Makefile
 run.sh
 results.json
+pdf.py

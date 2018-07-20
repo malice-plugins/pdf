@@ -10,7 +10,7 @@ LABEL malice.plugin.docker.engine="*"
 ENV PDFID 0_2_4
 ENV PDF_PARSER 0_6_8
 
-COPY . /src/github.com/maliceio/malice-pdf
+COPY . /usr/sbin
 RUN apk --update add --no-cache python py-setuptools
 RUN apk --update add --no-cache -t .build-deps \
   openssl-dev \
@@ -24,20 +24,20 @@ RUN apk --update add --no-cache -t .build-deps \
   git \
   && set -ex \
   && echo "===> Install peepdf..." \
-  && cd /src/github.com/maliceio/malice-pdf \
+  && cd /usr/sbin \
   && export PIP_NO_CACHE_DIR=off \
   && export PIP_DISABLE_PIP_VERSION_CHECK=on \
   && pip install --upgrade pip wheel \
   && echo "\t[*] install requirements..." \
   && pip install -U -r requirements.txt \
-  && echo "\t[*] install requirements..." \
-  && pip install https://github.com/jbremer/peepdf.git \
+  # && echo "\t[*] install peepdf..." \
+  # && pip install https://github.com/jbremer/peepdf.git \
   && echo "\t[*] install pdfscan.py..." \
   && chmod +x pdfscan.py \
-  && ln -s /src/github.com/maliceio/malice-pdf/pdfscan.py /bin/pdfscan \
+  && ln -s /usr/sbin/pdfscan.py /usr/sbin/pdfscan \
   && apk del --purge .build-deps
 
 WORKDIR /malware
 
-ENTRYPOINT ["su-exec","malice","/sbin/tini","--","pdfid.py"]
+ENTRYPOINT ["su-exec","malice","/sbin/tini","--","pdfscan"]
 CMD ["--help"]

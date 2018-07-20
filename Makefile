@@ -31,7 +31,7 @@ test:
 	@echo "===> ${NAME} --help"
 	@sleep 10; docker run --rm $(ORG)/$(NAME):$(VERSION)
 	@echo "===> ${NAME} malware test"
-	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) -V $(MALWARE) | jq . > docs/results.json
+	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
 .PHONY: test-markdown
@@ -47,7 +47,10 @@ run: stop ## Run docker container
 
 .PHONY: ssh
 ssh: ## SSH into docker image
-	@docker run -it --rm --entrypoint=sh $(ORG)/$(NAME):$(VERSION)
+	@echo "===> Starting elasticsearch"
+	@docker rm -f elasticsearch || true
+	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch
+	@docker run -it --rm --link elasticsearch -v $(PWD):/malware --entrypoint=sh $(ORG)/$(NAME):$(VERSION)
 
 .PHONY: stop
 stop: ## Kill running docker containers
