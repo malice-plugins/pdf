@@ -238,6 +238,7 @@ Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucke
 - [ ] add peepdf for JS
 - [ ] add uwsgi to serve webserver (maybe nginx?)
 - [ ] add better error handling for bad input files or failed PDFiD, etc
+- [ ] use https://github.com/unidoc/unidoc instead??
 
 ### License
 

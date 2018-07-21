@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 # This file is part of MaliceIO - https://github.com/malice-plugins/pdf
 # See the file 'LICENSE' for copying permission.
+import tempfile
 
 __description__ = 'Malice PDF Plugin'
 __author__ = 'blacktop - <https://github.com/blacktop>'
@@ -31,6 +32,7 @@ class PDF(object):
 
     def __init__(self, file_path, verbose):
         self.file = file_path
+        self.sha256 = self.sha256_checksum(self.file)
         self.oPDFiD = None
         self.init_logging(verbose)
 
@@ -131,6 +133,117 @@ class PDF(object):
         return pdf_dict
 
     def pdf_parser(self):
+
+        def get_streams():
+            # Initialize pdf parser.
+            parser = pdf_parser.cPDFParser(self.file)
+
+            # Generate statistics.
+            results = []
+            objects = []
+            oid = 0
+
+            while True:
+                pdf_object = parser.GetObject()
+                if pdf_object is None:
+                    break
+                oid += 1
+                objects.append(pdf_object)
+                obj_type = pdf_object.type
+                obj_id = '/'
+                if obj_type == pdf_parser.PDF_ELEMENT_STARTXREF:
+                    obj_content = pdf_object.index
+                    obj_type = 'STARTXREF'
+                elif obj_type == pdf_parser.PDF_ELEMENT_COMMENT:
+                    obj_content = pdf_object.comment.encode()
+                    obj_type = 'COMMENT'
+                elif obj_type in (pdf_parser.PDF_ELEMENT_MALFORMED, pdf_parser.PDF_ELEMENT_TRAILER, pdf_parser.PDF_ELEMENT_XREF,
+                                  pdf_parser.PDF_ELEMENT_INDIRECT_OBJECT):
+                    obj_content = dump_content(pdf_object.content)
+                    if obj_type == pdf_parser.PDF_ELEMENT_MALFORMED:
+                        obj_type = 'MALFORMED'
+                    elif obj_type == pdf_parser.PDF_ELEMENT_TRAILER:
+                        obj_type = 'TRAILER'
+                    elif obj_type == pdf_parser.PDF_ELEMENT_XREF:
+                        obj_type = 'XREF'
+                    elif obj_type == pdf_parser.PDF_ELEMENT_INDIRECT_OBJECT:
+                        obj_id = pdf_object.id
+                        obj_type = pdf_object.GetType()
+
+                else:
+                    # Can it happen?
+                    continue
+
+                if isinstance(obj_content, int):
+                    obj_len = 0
+                else:
+                    obj_len = len(obj_content)
+                result = [oid, obj_id, obj_len, obj_type]
+                # If the stream needs to be dumped or opened, we do it
+                # and expand the results with the path to the stream dump.
+                if arg_open or arg_dump:
+                    # If was instructed to dump, we already have a base folder.
+                    if arg_dump:
+                        folder = arg_dump
+                    # Otherwise we juts generate a temporary one.
+                    else:
+                        folder = tempfile.gettempdir()
+
+                    # Confirm the dump path
+                    if not os.path.exists(folder):
+                        try:
+                            os.makedirs(folder)
+                        except Exception as e:
+                            self.log('error', "Unable to create directory at {0}: {1}".format(folder, e))
+                            return results
+                    else:
+                        if not os.path.isdir(folder):
+                            self.log('error', "You need to specify a folder not a file")
+                            return results
+                    if obj_len == 0:
+                        continue
+                    # Dump stream to this path.
+                    dump_path = '{0}/{1}_{2}_pdf_stream.bin'.format(folder, self.sha256, oid)
+                    with open(dump_path, 'wb') as handle:
+                        handle.write(obj_content)
+
+                    # Add dump path to the stream attributes.
+                    result.append(dump_path)
+                elif arg_show and int(arg_show) == int(oid):
+                    to_print = pdf_parser.FormatOutput(obj_content, True)
+                    if isinstance(to_print, int):
+                        self.log('info', to_print)
+                    else:
+                        self.log('info', to_print.decode())
+                    if pdf_object.type == pdf_parser.PDF_ELEMENT_INDIRECT_OBJECT and pdf_object.ContainsStream():
+                        self.log('Success', 'Stream content:')
+                        self.log('info', pdf_parser.FormatOutput(pdf_object.Stream(True), True).decode())
+
+                # Update list of streams.
+                results.append(result)
+            return sorted(results, key=lambda x: int(x[0]))
+
+        def dump_content(data):
+            if isinstance(data, list):
+                return b''.join([x[1].encode() for x in data])
+            else:
+                return data.encode()
+
+        arg_open = True
+        arg_dump = 'test/dump'
+        arg_show = True
+
+        # Retrieve list of streams.
+        streams = get_streams()
+
+        if not arg_show:
+            # Show list of streams.
+            header = ['#', 'Object ID', 'Size', 'Type']
+            if arg_dump or arg_open:
+                header.append('Dumped To')
+
+            self.log('table', dict(header=header, rows=streams))
+
         return {}
 
     def peepdf(self):
@@ -238,7 +351,7 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout):
         # write to elasticsearch
         if eshost:
             e = Elastic(eshost, timeout=timeout)
-            e.write(id=p.sha256_checksum(p.file), doc=malice_json)
+            e.write(id=p.sha256, doc=malice_json)
 
         if table:
             print malice_json['plugins']['doc']['pdf']['markdown']
