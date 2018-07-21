@@ -171,16 +171,6 @@ This will output to stdout and POST to malice results API webhook endpoint.
 - **Count %% EOF:** `1`
 - **Data After EOF:** `0`
 
-**Embedded File:**
-
-- **Score:** `0.9`
-- **Reason:** `/EmbeddedFile` flag(s) detected
-
-**Triage:**
-
-- **Score:** `1.0`
-- **Reason:** sample is likely malicious and requires further analysis
-
 | Keyword        | Count |
 | -------------- | ----- |
 | obj            | 9     |
@@ -204,6 +194,16 @@ This will output to stdout and POST to malice results API webhook endpoint.
 | /EmbeddedFile  | 1     |
 | /XFA           | 0     |
 | /Colors > 2^24 | 0     |
+
+**Embedded File:**
+
+- **Score:** `0.9`
+- **Reason:** `/EmbeddedFile` flag(s) detected
+
+**Triage:**
+
+- **Score:** `1.0`
+- **Reason:** sample is likely malicious and requires further analysis
 
 ---
 

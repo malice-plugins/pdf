@@ -151,6 +151,12 @@ def json2markdown(json_data):
  - **Entropy Out Streams:** `{{ pdfid['nonStreamEntropy'] }}`
  - **Count %% EOF:** `{{ pdfid['countEof'] }}`
  - **Data After EOF:** `{{ pdfid['countChatAfterLastEof'] }}`
+
+| Keyword     | Count     |
+|-------------|-----------|
+{% for keyword in pdfid['keywords'].get('keyword') -%}
+| {{ keyword.get('name') }}      | {{ keyword.get('count') }}        |
+{% endfor -%}
 {% if pdfid['heuristics']['embeddedfile'].get('score') > 0 %}
 **Embedded File:**
  - **Score:** `{{ pdfid['heuristics']['embeddedfile'].get('score') }}`
@@ -166,12 +172,6 @@ def json2markdown(json_data):
  - **Score:** `{{ pdfid['heuristics']['triage'].get('score') }}`
  - **Reason:** {{ pdfid['heuristics']['triage'].get('reason') }}
 {%- endif %}
-
-| Keyword     | Count     |
-|-------------|-----------|
-{% for keyword in pdfid['keywords'].get('keyword') -%}
-| {{ keyword.get('name') }}      | {{ keyword.get('count') }}        |
-{% endfor -%}
 '''
 
     return Environment(loader=BaseLoader()).from_string(markdown).render(pdfid=json_data['pdfid'])

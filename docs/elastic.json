@@ -1,5 +1,5 @@
 {
-  "took": 65,
+  "took": 104,
   "timed_out": false,
   "_shards": {
     "total": 5,
@@ -22,7 +22,7 @@
               "pdf": {
                 "streams": {},
                 "peepdf": {},
-                "markdown": "\n#### pdf\n#### PDFiD\n - **PDF Header:** `%PDF-1.1`\n - **Total Entropy:** `7.873045`\n - **Entropy In Streams:** `7.970107`\n - **Entropy Out Streams:** `4.896895`\n - **Count %% EOF:** `1`\n - **Data After EOF:** `0`\n\n**Embedded File:**\n - **Score:** `0.9`\n - **Reason:** `/EmbeddedFile` flag(s) detected\n\n**Triage:**\n - **Score:** `1.0`\n - **Reason:** sample is likely malicious and requires further analysis\n\n| Keyword     | Count     |\n|-------------|-----------|\n| obj      | 9        |\n| endobj      | 9        |\n| stream      | 2        |\n| endstream      | 2        |\n| xref      | 1        |\n| trailer      | 1        |\n| startxref      | 1        |\n| /Page      | 1        |\n| /Encrypt      | 0        |\n| /ObjStm      | 0        |\n| /JS      | 1        |\n| /JavaScript      | 1        |\n| /AA      | 0        |\n| /OpenAction      | 1        |\n| /AcroForm      | 0        |\n| /JBIG2Decode      | 0        |\n| /RichMedia      | 0        |\n| /Launch      | 0        |\n| /EmbeddedFile      | 1        |\n| /XFA      | 0        |\n| /Colors > 2^24      | 0        |\n",
+                "markdown": "\n#### pdf\n#### PDFiD\n - **PDF Header:** `%PDF-1.1`\n - **Total Entropy:** `7.873045`\n - **Entropy In Streams:** `7.970107`\n - **Entropy Out Streams:** `4.896895`\n - **Count %% EOF:** `1`\n - **Data After EOF:** `0`\n\n| Keyword     | Count     |\n|-------------|-----------|\n| obj      | 9        |\n| endobj      | 9        |\n| stream      | 2        |\n| endstream      | 2        |\n| xref      | 1        |\n| trailer      | 1        |\n| startxref      | 1        |\n| /Page      | 1        |\n| /Encrypt      | 0        |\n| /ObjStm      | 0        |\n| /JS      | 1        |\n| /JavaScript      | 1        |\n| /AA      | 0        |\n| /OpenAction      | 1        |\n| /AcroForm      | 0        |\n| /JBIG2Decode      | 0        |\n| /RichMedia      | 0        |\n| /Launch      | 0        |\n| /EmbeddedFile      | 1        |\n| /XFA      | 0        |\n| /Colors > 2^24      | 0        |\n\n**Embedded File:**\n - **Score:** `0.9`\n - **Reason:** `/EmbeddedFile` flag(s) detected\n\n**Triage:**\n - **Score:** `1.0`\n - **Reason:** sample is likely malicious and requires further analysis",
                 "pdfid": {
                   "heuristics": {
                     "embeddedfile": {
