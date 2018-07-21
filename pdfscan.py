@@ -52,12 +52,6 @@ class PDF(object):
         es_logger.setLevel(verbose)
         es_logger.addHandler(ch)
 
-        # get elasticsearch.trace logger
-        es_tracer = logging.getLogger('elasticsearch.trace')
-        es_tracer.propagate = False
-        es_tracer.setLevel(verbose)
-        es_tracer.addHandler(ch)
-
     @staticmethod
     def sha256_checksum(filename, block_size=65536):
         sha256 = hashlib.sha256()
