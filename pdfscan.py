@@ -37,7 +37,8 @@ class PDF(object):
         self.oPDFiD = None
         self.init_logging(verbose)
 
-    def init_logging(self, verbose):
+    @staticmethod
+    def init_logging(verbose):
         # create console handler and set level to debug
         ch = logging.StreamHandler()
         ch.setLevel(verbose)
@@ -49,14 +50,13 @@ class PDF(object):
         es_logger = logging.getLogger('elasticsearch')
         es_logger.propagate = False
         es_logger.setLevel(verbose)
-        es_logger_handler = RotatingFileHandler('elasticsearch.log', maxBytes=0.5 * 10**9, backupCount=3)
-        es_logger.addHandler(es_logger_handler)
+        es_logger.addHandler(ch)
 
+        # get elasticsearch.trace logger
         es_tracer = logging.getLogger('elasticsearch.trace')
         es_tracer.propagate = False
         es_tracer.setLevel(verbose)
-        es_tracer_handler = RotatingFileHandler('elasticsearch.trace.log', maxBytes=0.5 * 10**9, backupCount=3)
-        es_tracer.addHandler(es_tracer_handler)
+        es_tracer.addHandler(ch)
 
     @staticmethod
     def sha256_checksum(filename, block_size=65536):
