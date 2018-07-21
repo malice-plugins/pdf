@@ -13,19 +13,15 @@ import hashlib
 import json
 import logging
 import os
-from flask import Flask, request, redirect, abort, url_for, jsonify
-from werkzeug.utils import secure_filename
-# import re
-# import sys
-# import tempfile
-# import unicodedata
 
 import click
-from jinja2 import BaseLoader, Environment
 
 from elastic import Elastic
+from flask import Flask, abort, jsonify, redirect, request, url_for
+from jinja2 import BaseLoader, Environment
 from pdfid import pdfid
-# from pdfparser import pdf_parser
+from pdfparser import pdf_parser
+from werkzeug.utils import secure_filename
 
 log = logging.getLogger(__name__)
 
