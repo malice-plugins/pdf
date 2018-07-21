@@ -49,6 +49,11 @@ test-markdown:
 	@cat docs/elastic.json | jq '.hits.hits[] ._source.plugins.${CATEGORY}' | jq -r '.["${NAME}"].markdown' > docs/SAMPLE.md
 	@docker rm -f elasticsearch
 
+.PHONY: test_web
+test_web:
+	@echo "===> Starting web service"
+	@docker run --rm -p 3993:3993 $(ORG)/$(NAME):$(VERSION) web
+
 .PHONY: run
 run: stop ## Run docker container
 	@docker run --init -d --name $(NAME) -p 9200:9200 $(ORG)/$(NAME):$(VERSION)
