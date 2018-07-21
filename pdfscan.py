@@ -143,38 +143,38 @@ def json2markdown(json_data):
     """Convert JSON output to MarkDown table"""
 
     markdown = """
-    #### PDF
+#### PDF
 
-    #### PDFiD
+#### PDFiD
 
-    PDF Header: `{{ pdfid['header'] }}`
-    Total Entropy: {{ pdfid['totalEntropy'] }}
-    Entropy In Streams: {{ pdfid['streamEntropy'] }}
-    Entropy Out Streams: {{ pdfid['nonStreamEntropy'] }}
-    Count %% EOF: {{ pdfid['countEof'] }}
-    Data After EOF: {{ pdfid['countChatAfterLastEof'] }}
-    {% if pdfid['heuristics']['embeddedfile'].get('score') > 0 %}
-    **Embedded File:**
-     - Score: {{ pdfid['heuristics']['embeddedfile'].get('score') }}
-     - Reason: {{ pdfid['heuristics']['embeddedfile'].get('reason') }}
-    {%- endif %}
-    {% if pdfid['heuristics']['nameobfuscation'].get('score') > 0 -%}
-    **Name Obfuscation:**
-     - Score: {{ pdfid['heuristics']['nameobfuscation'].get('score') }}
-     - Reason: {{ pdfid['heuristics']['nameobfuscation'].get('reason') }}
-    {%- endif %}
-    {% if pdfid['heuristics']['triage'].get('score') > 0 -%}
-    **Triage:**
-     - Score: {{ pdfid['heuristics']['triage'].get('score') }}
-     - Reason: {{ pdfid['heuristics']['triage'].get('reason') }}
-    {%- endif %}
+PDF Header: `{{ pdfid['header'] }}`
+Total Entropy: {{ pdfid['totalEntropy'] }}
+Entropy In Streams: {{ pdfid['streamEntropy'] }}
+Entropy Out Streams: {{ pdfid['nonStreamEntropy'] }}
+Count %% EOF: {{ pdfid['countEof'] }}
+Data After EOF: {{ pdfid['countChatAfterLastEof'] }}
+{% if pdfid['heuristics']['embeddedfile'].get('score') > 0 %}
+**Embedded File:**
+ - Score: {{ pdfid['heuristics']['embeddedfile'].get('score') }}
+ - Reason: {{ pdfid['heuristics']['embeddedfile'].get('reason') }}
+{%- endif %}
+{% if pdfid['heuristics']['nameobfuscation'].get('score') > 0 -%}
+**Name Obfuscation:**
+ - Score: {{ pdfid['heuristics']['nameobfuscation'].get('score') }}
+ - Reason: {{ pdfid['heuristics']['nameobfuscation'].get('reason') }}
+{%- endif %}
+{% if pdfid['heuristics']['triage'].get('score') > 0 -%}
+**Triage:**
+ - Score: {{ pdfid['heuristics']['triage'].get('score') }}
+ - Reason: {{ pdfid['heuristics']['triage'].get('reason') }}
+{%- endif %}
 
-    | Keyword     | Count     |
-    |-------------|-----------|
-    {% for keyword in pdfid['keywords'].get('keyword') -%}
-    | {{ keyword.get('name') }}      | {{ keyword.get('count') }}        |
-    {% endfor -%}
-    """
+| Keyword     | Count     |
+|-------------|-----------|
+{% for keyword in pdfid['keywords'].get('keyword') -%}
+| {{ keyword.get('name') }}      | {{ keyword.get('count') }}        |
+{% endfor -%}
+"""
 
     return Environment(loader=BaseLoader()).from_string(markdown).render(pdfid=json_data['pdfid'])
 
