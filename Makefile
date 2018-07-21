@@ -32,7 +32,7 @@ malware:
 	cd test; echo "TEST" > not.pdf
 
 .PHONY: test
-test:
+test: malware
 	@echo "===> Starting elasticsearch"
 	@docker rm -f elasticsearch || true
 	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch:5.5
@@ -92,6 +92,7 @@ clean: clean_pyc ## Clean docker image and stop all running containers
 .PHONY: clean_pyc
 clean_pyc:  ## Clean all compiled python files
 	find . -name "*.pyc" -exec rm -f {} \;
+	rm *.log
 
 # Absolutely awesome: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:

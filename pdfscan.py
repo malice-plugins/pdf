@@ -16,6 +16,7 @@ import os
 
 import click
 
+import requests
 from elastic import Elastic
 from flask import Flask, abort, jsonify, redirect, request, url_for
 from jinja2 import BaseLoader, Environment
@@ -141,7 +142,7 @@ def json2markdown(json_data):
 
     markdown = '''
 #### pdf
-{% if pdfid is not none %}
+{% if pdfid is not none -%}
 #### PDFiD
  - **PDF Header:** `{{ pdfid['header'] }}`
  - **Total Entropy:** `{{ pdfid['totalEntropy'] }}`
@@ -244,8 +245,11 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout):
         else:
             print json.dumps(pdf_dict, indent=True)
 
+        if callback:
+            requests.post(callback, json=malice_json)
+
     except Exception as e:
-        log.exception("failed to run malice plugin: {}".format('pdf'))
+        log.exception("failed to run malice plugin: pdf")
         return
 
 

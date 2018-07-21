@@ -3,7 +3,12 @@
 ```bash
 $ docker run -d -p 3993:3993 malice/pdf web
 
-INFO[0000] web service listening on port :3993
+ * Serving Flask app "pdfscan" (lazy loading)
+ * Environment: production
+   WARNING: Do not use the development server in a production environment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+ * Running on http://0.0.0.0:3993/ (Press CTRL+C to quit)
 ```
 
 ## Now you can perform scans like so
