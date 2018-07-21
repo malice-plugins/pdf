@@ -1,5 +1,11 @@
 # To write results to [ElasticSearch](https://www.elastic.co/products/elasticsearch)
 
+## Requirements
+
+- [blacktop/elasticsearch:5.5](https://github.com/blacktop/docker-elasticsearch-alpine)
+
+> **NOTE:** limited to **elasticsearch:5.5** for now because that is what **malice** uses
+
 ```bash
 # I am creating a volume to store the elasticsearch data incase the container dies (or we upgrade later)
 $ docker volume create --name malice

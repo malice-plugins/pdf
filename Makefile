@@ -27,11 +27,11 @@ tar: build
 test:
 	@echo "===> Starting elasticsearch"
 	@docker rm -f elasticsearch || true
-	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch
+	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch:5.5
 	@echo "===> ${NAME} --help"
 	@docker run --rm $(ORG)/$(NAME):$(VERSION); sleep 10
 	@echo "===> ${NAME} malware test"
-	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv $(MALWARE) | jq . > docs/results.json
+	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan --elasticsearch elasticsearch -vvvv $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
 .PHONY: test-markdown
