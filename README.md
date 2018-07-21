@@ -24,7 +24,19 @@ $ docker run --rm -v /path/to/malware:/malware malice/pdf PDFFILE
 ```
 
 ```bash
+Usage: pdfscan [OPTIONS] COMMAND [ARGS]...
 
+  Malice PDF Plugin
+
+  Author: blacktop <https://github.com/blacktop>
+
+Options:
+  --version   print the version
+  -h, --help  Show this message and exit.
+
+Commands:
+  scan  scan a file
+  web   start web service
 ```
 
 This will output to stdout and POST to malice results API webhook endpoint.
