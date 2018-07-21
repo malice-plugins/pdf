@@ -1,6 +1,6 @@
 # malice-pdf (WIP)
 
-[![Circle CI](https://circleci.com/gh/malice-plugins/pdf.png?style=shield)](https://circleci.com/gh/malice-plugins/pdf) [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org) [![Docker Stars](https://img.shields.io/docker/stars/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Pulls](https://img.shields.io/docker/pulls/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Image](https://img.shields.io/badge/docker%20image-54.9MB-blue.svg)](https://hub.docker.com/r/malice/pdf/)
+[![Circle CI](https://circleci.com/gh/malice-plugins/pdf.png?style=shield)](https://circleci.com/gh/malice-plugins/pdf) [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org) [![Docker Stars](https://img.shields.io/docker/stars/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Pulls](https://img.shields.io/docker/pulls/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Image](https://img.shields.io/badge/docker%20image-55.9MB-blue.svg)](https://hub.docker.com/r/malice/pdf/)
 
 Malice PDF Plugin
 
@@ -35,7 +35,91 @@ This will output to stdout and POST to malice results API webhook endpoint.
 
 ```json
 {
-  "pdf": {}
+  "pdf": {
+    "streams": {},
+    "peepdf": {},
+    "pdfid": {
+      "heuristics": {
+        "embeddedfile": {
+          "reason": "`/EmbeddedFile` flag(s) detected",
+          "score": 0.9
+        },
+        "nameobfuscation": {
+          "reason": "no hex encoded flags detected",
+          "score": 0
+        },
+        "suspicious": {},
+        "triage": {
+          "reason": "sample is likely malicious and requires further analysis",
+          "score": 1
+        }
+      },
+      "countChatAfterLastEof": "0",
+      "errorMessage": "",
+      "dates": {
+        "date": []
+      },
+      "nonStreamEntropy": "4.896895",
+      "header": "%PDF-1.1",
+      "version": "0.2.4",
+      "entropy": "",
+      "totalEntropy": "7.873045",
+      "isPdf": "True",
+      "keywords": {
+        "keyword": [
+          {
+            "count": 9,
+            "hexcodecount": 0,
+            "name": "obj"
+          },
+          {
+            "count": 9,
+            "hexcodecount": 0,
+            "name": "endobj"
+          },
+          {
+            "count": 2,
+            "hexcodecount": 0,
+            "name": "stream"
+          },
+          {
+            "count": 2,
+            "hexcodecount": 0,
+            "name": "endstream"
+          },
+          {
+            "count": 1,
+            "hexcodecount": 0,
+            "name": "xref"
+          },
+          {
+            "count": 1,
+            "hexcodecount": 0,
+            "name": "trailer"
+          },
+          {
+            "count": 1,
+            "hexcodecount": 0,
+            "name": "startxref"
+          },
+          {
+            "count": 1,
+            "hexcodecount": 0,
+            "name": "/Page"
+          },
+          ...SNIP...
+          {
+            "count": 0,
+            "hexcodecount": 0,
+            "name": "/Colors > 2^24"
+          }
+        ]
+      },
+      "countEof": "1",
+      "streamEntropy": "7.970107",
+      "errorOccured": "False"
+    }
+  }
 }
 ```
 
@@ -44,6 +128,49 @@ This will output to stdout and POST to malice results API webhook endpoint.
 ---
 
 #### pdf
+
+#### PDFiD
+
+- **PDF Header:** `%PDF-1.1`
+- **Total Entropy:** `7.873045`
+- **Entropy In Streams:** `7.970107`
+- **Entropy Out Streams:** `4.896895`
+- **Count %% EOF:** `1`
+- **Data After EOF:** `0`
+
+**Embedded File:**
+
+- **Score:** `0.9`
+- **Reason:** `/EmbeddedFile` flag(s) detected
+
+**Triage:**
+
+- **Score:** `1.0`
+- **Reason:** sample is likely malicious and requires further analysis
+
+| Keyword        | Count |
+| -------------- | ----- |
+| obj            | 9     |
+| endobj         | 9     |
+| stream         | 2     |
+| endstream      | 2     |
+| xref           | 1     |
+| trailer        | 1     |
+| startxref      | 1     |
+| /Page          | 1     |
+| /Encrypt       | 0     |
+| /ObjStm        | 0     |
+| /JS            | 1     |
+| /JavaScript    | 1     |
+| /AA            | 0     |
+| /OpenAction    | 1     |
+| /AcroForm      | 0     |
+| /JBIG2Decode   | 0     |
+| /RichMedia     | 0     |
+| /Launch        | 0     |
+| /EmbeddedFile  | 1     |
+| /XFA           | 0     |
+| /Colors > 2^24 | 0     |
 
 ---
 
@@ -73,7 +200,9 @@ Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucke
 
 ### TODO
 
-- [ ] add other's LICENSEs
+- [ ] add PDFiD
+- [ ] add pdf-parser for streams
+- [ ] add peepdf for JS
 
 ### License
 

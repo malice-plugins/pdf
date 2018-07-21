@@ -23,7 +23,7 @@ RUN apk --update add --no-cache -t .build-deps \
   gcc \
   git \
   && set -ex \
-  && echo "===> Install peepdf..." \
+  && echo "===> Install malice/pdf plugin..." \
   && cd /usr/sbin \
   && export PIP_NO_CACHE_DIR=off \
   && export PIP_DISABLE_PIP_VERSION_CHECK=on \
@@ -35,6 +35,8 @@ RUN apk --update add --no-cache -t .build-deps \
   && echo "\t[*] install pdfscan.py..." \
   && chmod +x pdfscan.py \
   && ln -s /usr/sbin/pdfscan.py /usr/sbin/pdfscan \
+  && echo "\t[*] clean up..." \
+  && rm requirements.txt Dockerfile VERSION \
   && apk del --purge .build-deps
 
 WORKDIR /malware

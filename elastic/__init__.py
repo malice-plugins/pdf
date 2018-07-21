@@ -7,24 +7,24 @@ __author__ = "blacktop - <https://github.com/blacktop>"
 
 import time
 
-from elasticsearch import Elasticsearch, ElasticsearchException
+import elasticsearch
 
 from . import mapping
 
 
 class Elastic(object):
 
-    def __init__(self, elastic_host, timeout=20):
-        self.host = elastic_host
-        self.es = Elasticsearch([].append(self.host))
+    def __init__(self, elastic_host, timeout=0):
+        self.es = elasticsearch.Elasticsearch(elastic_host)
 
+        # wait for elasticsearch to finish starting
         for _ in range(timeout):
             if self.es.ping():
                 break
             time.sleep(1)
 
         if not self.es.ping():
-            raise ElasticsearchException("[PING] cannot connect to host: {}".format(self.host))
+            raise elasticsearch.ElasticsearchException("[PING] cannot connect to host: {}".format(elastic_host))
 
         # create malice index
         self.es.indices.create(index="malice", ignore=400)
@@ -37,8 +37,8 @@ class Elastic(object):
             # u'_index': u'malice', u'_version': 2, u'_primary_term':1, u'result': u'updated',
             # u'_id': u'86a96ec03ba8242c1486456d67ee17f919128754846dbb3bdf5e836059091dba'}
             if not resp.get("result"):
-                raise ElasticsearchException("[INDEX] failed to write doc with id: {}".format(id))
+                raise elasticsearch.ElasticsearchException("[INDEX] failed to write doc with id: {}".format(id))
         else:
             resp = self.es.update(index="malice", doc_type="samples", id=id, body=dict(doc=doc))
             if not resp.get("result"):
-                raise ElasticsearchException("[UPDATE] failed to update doc with id: {}".format(id))
+                raise elasticsearch.ElasticsearchException("[UPDATE] failed to update doc with id: {}".format(id))

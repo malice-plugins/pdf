@@ -143,7 +143,7 @@ def json2markdown(json_data):
     """Convert JSON output to MarkDown table"""
 
     markdown = '''
-#### PDF
+#### pdf
 #### PDFiD
  - **PDF Header:** `{{ pdfid['header'] }}`
  - **Total Entropy:** `{{ pdfid['totalEntropy'] }}`
@@ -213,10 +213,15 @@ def pdf():
 @click.option(
     'eshost',
     '--elasticsearch',
-    default=lambda: os.environ.get('MALICE_ELASTICSEARCH', {'host': 'elasticsearch'}),
+    default=lambda: os.environ.get('MALICE_ELASTICSEARCH', 'elasticsearch'),
     help='elasticsearch address for Malice to store results',
     metavar='HOST')
-def scan(file_path, verbose, table, proxy, callback, eshost):
+@click.option(
+    '--timeout',
+    default=lambda: os.environ.get('MALICE_TIMEOUT', 10),
+    help='malice plugin timeout (default: 10)',
+    metavar='SECS')
+def scan(file_path, verbose, table, proxy, callback, eshost, timeout):
     """Malice PDF Plugin."""
 
     try:
@@ -230,7 +235,7 @@ def scan(file_path, verbose, table, proxy, callback, eshost):
         malice_json = {'plugins': {'doc': pdf_dict}}
 
         # write to elasticsearch
-        e = Elastic(eshost)
+        e = Elastic(eshost, timeout=timeout)
         e.write(id=p.sha256_checksum(p.file), doc=malice_json)
 
         if table:

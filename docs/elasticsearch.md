@@ -1,7 +1,7 @@
-To write results to [ElasticSearch](https://www.elastic.co/products/elasticsearch)
-==================================================================================
+# To write results to [ElasticSearch](https://www.elastic.co/products/elasticsearch)
 
 ```bash
+# I am creating a volume to store the elasticsearch data incase the container dies (or we upgrade later)
 $ docker volume create --name malice
 $ docker run -d --name elasticsearch \
                 -p 9200:9200 \
