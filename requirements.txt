@@ -3,9 +3,17 @@ click>=6.0.0,<7.0.0
 elasticsearch>=5.5.0,<6.0.0
 Jinja2==2.10
 Flask==1.0.2
+Werkzeug==0.14.1
 requests==2.19.1
+
+fuzzywuzzy
+python-Levenshtein
 
 # peepdf
 # pylibemu
 # python-spidermonkey
+# nosepython-spidermonkey
 # nose
+
+# extract patterns of interest from suspicious files
+#-e git://github.com/decalage2/balbuzard.git#egg=balbuzard
