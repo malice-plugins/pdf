@@ -1,21 +1,19 @@
 
 #### PDF
-
 #### PDFiD
-
-**PDF Header:** `%PDF-1.1`  
-**Total Entropy:** 7.873045  
-**Entropy In Streams:** 7.970107  
-**Entropy Out Streams:** 4.896895  
-**Count %% EOF: 1  
-**Data After EOF:** 0  
+ - **PDF Header:** `%PDF-1.1`
+ - **Total Entropy:** `7.873045`
+ - **Entropy In Streams:** `7.970107`
+ - **Entropy Out Streams:** `4.896895`
+ - **Count %% EOF:** `1`
+ - **Data After EOF:** `0`
 
 **Embedded File:**
- - **Score:** 0.9
- - **Reason:** EmbeddedFile flag(s) detected
+ - **Score:** `0.9`
+ - **Reason:** `/EmbeddedFile` flag(s) detected
 
 **Triage:**
- - **Score:** 1.0
+ - **Score:** `1.0`
  - **Reason:** sample is likely malicious and requires further analysis
 
 | Keyword     | Count     |

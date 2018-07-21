@@ -80,11 +80,11 @@ class PDF(object):
         def embeddedfile():
             if '/EmbeddedFile' in self.oPDFiD.keywords and self.oPDFiD.keywords['/EmbeddedFile'].count > 0:
                 if self.oPDFiD.keywords['/EmbeddedFile'].hexcode > 0:
-                    return dict(score=1.0, reason='EmbeddedFile flag(s) are hex encoded')
+                    return dict(score=1.0, reason='`/EmbeddedFile` flag(s) are hex encoded')
                 else:
-                    return dict(score=0.9, reason='EmbeddedFile flag(s) detected')
+                    return dict(score=0.9, reason='`/EmbeddedFile` flag(s) detected')
             else:
-                return dict(score=0.0, reason='no EmbeddedFile flag(s) detected')
+                return dict(score=0.0, reason='no `/EmbeddedFile` flag(s) detected')
 
         def triage():
             for keyword in ('/JS', '/JavaScript', '/AA', '/OpenAction', '/AcroForm', '/JBIG2Decode', '/RichMedia',
@@ -142,30 +142,28 @@ class PDF(object):
 def json2markdown(json_data):
     """Convert JSON output to MarkDown table"""
 
-    markdown = """
+    markdown = '''
 #### PDF
-
 #### PDFiD
-
-**PDF Header:** `{{ pdfid['header'] }}`  
-**Total Entropy:** {{ pdfid['totalEntropy'] }}  
-**Entropy In Streams:** {{ pdfid['streamEntropy'] }}  
-**Entropy Out Streams:** {{ pdfid['nonStreamEntropy'] }}  
-**Count %% EOF: {{ pdfid['countEof'] }}  
-**Data After EOF:** {{ pdfid['countChatAfterLastEof'] }}  
+ - **PDF Header:** `{{ pdfid['header'] }}`
+ - **Total Entropy:** `{{ pdfid['totalEntropy'] }}`
+ - **Entropy In Streams:** `{{ pdfid['streamEntropy'] }}`
+ - **Entropy Out Streams:** `{{ pdfid['nonStreamEntropy'] }}`
+ - **Count %% EOF:** `{{ pdfid['countEof'] }}`
+ - **Data After EOF:** `{{ pdfid['countChatAfterLastEof'] }}`
 {% if pdfid['heuristics']['embeddedfile'].get('score') > 0 %}
 **Embedded File:**
- - **Score:** {{ pdfid['heuristics']['embeddedfile'].get('score') }}
+ - **Score:** `{{ pdfid['heuristics']['embeddedfile'].get('score') }}`
  - **Reason:** {{ pdfid['heuristics']['embeddedfile'].get('reason') }}
 {%- endif %}
 {% if pdfid['heuristics']['nameobfuscation'].get('score') > 0 -%}
 **Name Obfuscation:**
- - **Score:** {{ pdfid['heuristics']['nameobfuscation'].get('score') }}
+ - **Score:** `{{ pdfid['heuristics']['nameobfuscation'].get('score') }}`
  - **Reason:** {{ pdfid['heuristics']['nameobfuscation'].get('reason') }}
 {%- endif %}
 {% if pdfid['heuristics']['triage'].get('score') > 0 -%}
 **Triage:**
- - **Score:** {{ pdfid['heuristics']['triage'].get('score') }}
+ - **Score:** `{{ pdfid['heuristics']['triage'].get('score') }}`
  - **Reason:** {{ pdfid['heuristics']['triage'].get('reason') }}
 {%- endif %}
 
@@ -174,7 +172,7 @@ def json2markdown(json_data):
 {% for keyword in pdfid['keywords'].get('keyword') -%}
 | {{ keyword.get('name') }}      | {{ keyword.get('count') }}        |
 {% endfor -%}
-"""
+'''
 
     return Environment(loader=BaseLoader()).from_string(markdown).render(pdfid=json_data['pdfid'])
 
