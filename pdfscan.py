@@ -207,7 +207,7 @@ def pdf():
 @click.option(
     'eshost',
     '--elasticsearch',
-    default=lambda: os.environ.get('MALICE_ELASTICSEARCH', 'elasticsearch'),
+    default=lambda: os.environ.get('MALICE_ELASTICSEARCH', ''),
     help='elasticsearch address for Malice to store results [$MALICE_ELASTICSEARCH]',
     metavar='HOST')
 @click.option(
@@ -229,8 +229,9 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout):
         malice_json = {'plugins': {'doc': pdf_dict}}
 
         # write to elasticsearch
-        e = Elastic(eshost, timeout=timeout)
-        e.write(id=p.sha256_checksum(p.file), doc=malice_json)
+        if eshost:
+            e = Elastic(eshost, timeout=timeout)
+            e.write(id=p.sha256_checksum(p.file), doc=malice_json)
 
         if table:
             print malice_json['plugins']['doc']['pdf']['markdown']

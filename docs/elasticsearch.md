@@ -7,5 +7,8 @@ $ docker run -d --name elasticsearch \
                 -p 9200:9200 \
                 -v malice:/usr/share/elasticsearch/data \
                  blacktop/elasticsearch
-$ docker run --rm -v /path/to/malware:/malware:ro --link elastic malice/pdf -t PDF_FILE
+$ docker run --rm \
+             -v /path/to/malware:/malware:ro \
+             --link elasticsearch \
+             malice/pdf -t --elasticsearch elasticsearch PDF_FILE
 ```
