@@ -202,24 +202,24 @@ def pdf():
     '-x',
     '--proxy',
     default=lambda: os.environ.get('MALICE_PROXY', ''),
-    help='proxy settings for Malice webhook endpoint',
+    help='proxy settings for Malice webhook endpoint [$MALICE_PROXY]',
     metavar='PROXY')
 @click.option(
     '-c',
     '--callback',
     default=lambda: os.environ.get('MALICE_ENDPOINT', ''),
-    help='POST results back to Malice webhook',
+    help='POST results back to Malice webhook [$MALICE_ENDPOINT]',
     metavar='ENDPOINT')
 @click.option(
     'eshost',
     '--elasticsearch',
     default=lambda: os.environ.get('MALICE_ELASTICSEARCH', 'elasticsearch'),
-    help='elasticsearch address for Malice to store results',
+    help='elasticsearch address for Malice to store results [$MALICE_ELASTICSEARCH]',
     metavar='HOST')
 @click.option(
     '--timeout',
     default=lambda: os.environ.get('MALICE_TIMEOUT', 10),
-    help='malice plugin timeout (default: 10)',
+    help='malice plugin timeout (default: 10) [$MALICE_TIMEOUT]',
     metavar='SECS')
 def scan(file_path, verbose, table, proxy, callback, eshost, timeout):
     """Malice PDF Plugin."""

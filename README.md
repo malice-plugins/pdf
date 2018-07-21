@@ -19,11 +19,9 @@ Malice PDF Plugin
 
 ### Usage
 
-```
-$ docker run --rm -v /path/to/malware:/malware malice/pdf PDFFILE
-```
-
 ```bash
+$ docker run --rm -v /path/to/malware:/malware malice/pdf --help
+
 Usage: pdfscan [OPTIONS] COMMAND [ARGS]...
 
   Malice PDF Plugin
@@ -37,6 +35,29 @@ Options:
 Commands:
   scan  scan a file
   web   start web service
+```
+
+#### Scanning
+
+```bash
+$ docker run --rm -v /path/to/malware:/malware malice/pdf scan --help
+
+Usage: pdfscan scan [OPTIONS] FILE_PATH
+
+  Malice PDF Plugin.
+
+Options:
+  -v, --verbose            verbose output
+  -t, --table              output as Markdown table
+  -x, --proxy PROXY        proxy settings for Malice webhook endpoint
+                           [$MALICE_PROXY]
+  -c, --callback ENDPOINT  POST results back to Malice webhook
+                           [$MALICE_ENDPOINT]
+  --elasticsearch HOST     elasticsearch address for Malice to store
+                           results [$MALICE_ELASTICSEARCH]
+  --timeout SECS           malice plugin timeout (default: 10)
+                           [$MALICE_TIMEOUT]
+  -h, --help               Show this message and exit.
 ```
 
 This will output to stdout and POST to malice results API webhook endpoint.
