@@ -233,7 +233,7 @@ Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucke
 
 ### TODO
 
-- [ ] add PDFiD
+- [x] add PDFiD
 - [ ] add pdf-parser for streams
 - [ ] add peepdf for JS
 
