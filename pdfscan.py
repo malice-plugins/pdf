@@ -241,7 +241,7 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout):
         if table:
             print malice_json['plugins']['doc']['pdf']['markdown']
         else:
-            print json.dumps(malice_json)
+            print json.dumps(pdf_dict, indent=True)
 
     except Exception as e:
         log.exception("failed to run malice plugin: {}".format('pdf'))
