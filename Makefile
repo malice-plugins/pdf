@@ -29,7 +29,7 @@ test:
 	@docker rm -f elasticsearch || true
 	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch
 	@echo "===> ${NAME} --help"
-	@sleep 10; docker run --rm $(ORG)/$(NAME):$(VERSION)
+	@docker run --rm $(ORG)/$(NAME):$(VERSION); sleep 10
 	@echo "===> ${NAME} malware test"
 	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .

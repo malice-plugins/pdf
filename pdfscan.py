@@ -13,17 +13,19 @@ import hashlib
 import json
 import logging
 import os
-import re
-import sys
-import tempfile
-import unicodedata
+# import re
+# import sys
+# import tempfile
+# import unicodedata
 from logging.handlers import RotatingFileHandler
 
 import click
+from jinja2 import BaseLoader, Environment
 
 from elastic import Elastic
 from pdfid import pdfid
-from pdfparser import pdf_parser
+
+# from pdfparser import pdf_parser
 
 log = logging.getLogger(__name__)
 
@@ -139,35 +141,42 @@ class PDF(object):
 
 def json2markdown(json_data):
     """Convert JSON output to MarkDown table"""
-    pdfid = json_data['plugins']['doc']['pdf']['pdfid']
-    print '#### PDF'
-    print
-    print '#### PDFiD'
-    print
-    print 'PDF Header: `{}`'.format(pdfid.get('header'))
-    print 'Total Entropy: {}'.format(pdfid.get('totalEntropy'))
-    print 'Entropy In Streams: {}'.format(pdfid.get('streamEntropy'))
-    print 'Entropy Out Streams: {}'.format(pdfid.get('nonStreamEntropy'))
-    print 'Count %% EOF: {}'.format(pdfid.get('countEof'))
-    print 'Data After EOF: {}'.format(pdfid.get('countChatAfterLastEof'))
-    print
-    if pdfid['heuristics']['embeddedfile'].get('score') > 0:
-        print '**Embedded File:**'
-        print ' - Score: {}'.format(pdfid['heuristics']['embeddedfile'].get('score'))
-        print ' - Reason: {}'.format(pdfid['heuristics']['embeddedfile'].get('reason'))
-    if pdfid['heuristics']['nameobfuscation'].get('score') > 0:
-        print '**Name Obfuscation:**'
-        print ' - Score: {}'.format(pdfid['heuristics']['nameobfuscation'].get('score'))
-        print ' - Reason: {}'.format(pdfid['heuristics']['nameobfuscation'].get('reason'))
-    if pdfid['heuristics']['triage'].get('score') > 0:
-        print '**Triage:**'
-        print ' - Score: {}'.format(pdfid['heuristics']['triage'].get('score'))
-        print ' - Reason: {}'.format(pdfid['heuristics']['triage'].get('reason'))
-    print
-    print '| Keyword     | Count     |'
-    print '|-------------|-----------|'
-    for keyword in pdfid['keywords'].get('keyword', []):
-        print '| {}      | {}        |'.format(keyword.get('name'), keyword.get('count'))
+
+    markdown = """
+    #### PDF
+
+    #### PDFiD
+
+    PDF Header: `{{ pdfid['header'] }}`
+    Total Entropy: {{ pdfid['totalEntropy'] }}
+    Entropy In Streams: {{ pdfid['streamEntropy'] }}
+    Entropy Out Streams: {{ pdfid['nonStreamEntropy'] }}
+    Count %% EOF: {{ pdfid['countEof'] }}
+    Data After EOF: {{ pdfid['countChatAfterLastEof'] }}
+    {% if pdfid['heuristics']['embeddedfile'].get('score') > 0 %}
+    **Embedded File:**
+     - Score: {{ pdfid['heuristics']['embeddedfile'].get('score') }}
+     - Reason: {{ pdfid['heuristics']['embeddedfile'].get('reason') }}
+    {%- endif %}
+    {% if pdfid['heuristics']['nameobfuscation'].get('score') > 0 -%}
+    **Name Obfuscation:**
+     - Score: {{ pdfid['heuristics']['nameobfuscation'].get('score') }}
+     - Reason: {{ pdfid['heuristics']['nameobfuscation'].get('reason') }}
+    {%- endif %}
+    {% if pdfid['heuristics']['triage'].get('score') > 0 -%}
+    **Triage:**
+     - Score: {{ pdfid['heuristics']['triage'].get('score') }}
+     - Reason: {{ pdfid['heuristics']['triage'].get('reason') }}
+    {%- endif %}
+
+    | Keyword     | Count     |
+    |-------------|-----------|
+    {% for keyword in pdfid['keywords'].get('keyword') -%}
+    | {{ keyword.get('name') }}      | {{ keyword.get('count') }}        |
+    {% endfor -%}
+    """
+
+    return Environment(loader=BaseLoader()).from_string(markdown).render(pdfid=json_data['pdfid'])
 
 
 def print_version(ctx, param, value):
@@ -218,6 +227,7 @@ def scan(file_path, verbose, table, proxy, callback, eshost):
         pdf_dict = {'pdf': p.pdf_id()}
         pdf_dict['pdf']['streams'] = p.pdf_parser()
         pdf_dict['pdf']['peepdf'] = p.peepdf()
+        pdf_dict['pdf']['markdown'] = json2markdown(pdf_dict['pdf'])
 
         malice_json = {'plugins': {'doc': pdf_dict}}
 
@@ -226,7 +236,7 @@ def scan(file_path, verbose, table, proxy, callback, eshost):
         e.write(id=p.sha256_checksum(p.file), doc=malice_json)
 
         if table:
-            json2markdown(malice_json)
+            print malice_json['plugins']['doc']['pdf']['markdown']
         else:
             print json.dumps(malice_json)
 

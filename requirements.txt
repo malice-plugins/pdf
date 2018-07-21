@@ -2,3 +2,4 @@ click>=6.0.0,<7.0.0
 #python-spidermonkey
 nose
 elasticsearch>=6.0.0,<7.0.0
+Jinja2==2.10
