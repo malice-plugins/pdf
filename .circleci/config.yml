@@ -46,7 +46,7 @@ jobs:
       - run:
           name: Download pdf
           command: |
-            docker run --init blacktop/httpie --follow https://github.com/malice-plugins/pdf/raw/master/test/pdf-doc-vba-eicar-dropper.pdf > /tmp/pdf
+            docker run --init blacktop/httpie --follow https://github.com/malice-plugins/pdf/raw/master/test/eicar.pdf > /tmp/pdf
             docker create -v /malware --name malvol alpine:3.7 /bin/true
             docker cp /tmp/pdf malvol:/malware
       - run:
