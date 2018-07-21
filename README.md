@@ -236,6 +236,8 @@ Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucke
 - [x] add PDFiD
 - [ ] add pdf-parser for streams
 - [ ] add peepdf for JS
+- [ ] add uwsgi to serve webserver (maybe nginx?)
+- [ ] add better error handling for bad input files or failed PDFiD, etc
 
 ### License
 

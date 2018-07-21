@@ -60,3 +60,4 @@ target/
 .circleci/build_num
 .idea
 venv
+test/web

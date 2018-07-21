@@ -3,7 +3,7 @@ ORG=malice
 NAME=pdf
 CATEGORY=doc
 VERSION=$(shell cat VERSION)
-MALWARE="test/pdf-doc-vba-eicar-dropper.pdf"
+MALWARE="test/eicar.pdf"
 
 
 all: build size test test-markdown
@@ -22,6 +22,14 @@ tags:
 .PHONY: tar
 tar: build
 	@docker save $(ORG)/$(NAME):$(VERSION) -o $(NAME).tar
+
+.PHONY: malware
+malware:
+	cd test; wget https://didierstevens.com/files/data/pdf-doc-vba-eicar-dropper.zip
+	cd test; unzip -P EICARdropper pdf-doc-vba-eicar-dropper.zip
+	cd test; mv pdf-doc-vba-eicar-dropper.pdf eicar.pdf
+	cd test; rm pdf-doc-vba-eicar-dropper.zip
+	cd test; echo "TEST" > not.pdf
 
 .PHONY: test
 test:

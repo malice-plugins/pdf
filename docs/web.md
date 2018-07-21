@@ -15,10 +15,11 @@ $ http -f localhost:3993/scan malware@/path/to/evil/malware
 > **NOTE:** I am using **httpie** to POST to the malice micro-service
 
 ```bash
-HTTP/1.1 200 OK
-Content-Length: 124
-Content-Type: application/json; charset=UTF-8
-Date: Sat, 21 Jan 2017 05:39:29 GMT
+HTTP/1.0 200 OK
+Content-Length: 2694
+Content-Type: application/json
+Date: Sat, 21 Jul 2018 03:40:39 GMT
+Server: Werkzeug/0.14.1 Python/2.7.15
 
 {
   "pdf": {

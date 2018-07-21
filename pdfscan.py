@@ -13,18 +13,18 @@ import hashlib
 import json
 import logging
 import os
+from flask import Flask, request, redirect, abort, url_for, jsonify
+from werkzeug.utils import secure_filename
 # import re
 # import sys
 # import tempfile
 # import unicodedata
-from logging.handlers import RotatingFileHandler
 
 import click
 from jinja2 import BaseLoader, Environment
 
 from elastic import Elastic
 from pdfid import pdfid
-
 # from pdfparser import pdf_parser
 
 log = logging.getLogger(__name__)
@@ -107,12 +107,19 @@ class PDF(object):
 
         # run the parser - returns an XML DOM instance
         pdf_data = pdfid.PDFiD(self.file, False, True)
-        self.oPDFiD = pdfid.cPDFiD(pdf_data, True)
+
+        try:
+            self.oPDFiD = pdfid.cPDFiD(pdf_data, force=True)
+        except IndexError:
+            if not pdf_data.documentElement.getAttribute('IsPDF') == 'True':
+                log.error('file cannot be analyzed by PDFiD because it is not a PDF')
+                return dict(error='file cannot be analyzed by PDFiD because it is not a PDF')
 
         # convert to JSON
         pdf_json = pdfid.PDFiD2JSON(pdf_data, True)
         pdf_dict = json.loads(pdf_json)[0]
 
+        # gather PDF heuristics
         heuristics = {
             'nameobfuscation': nameobfuscation(),
             'embeddedfile': embeddedfile(),
@@ -138,6 +145,7 @@ def json2markdown(json_data):
 
     markdown = '''
 #### pdf
+{% if pdfid is not none %}
 #### PDFiD
  - **PDF Header:** `{{ pdfid['header'] }}`
  - **Total Entropy:** `{{ pdfid['totalEntropy'] }}`
@@ -166,9 +174,10 @@ def json2markdown(json_data):
  - **Score:** `{{ pdfid['heuristics']['triage'].get('score') }}`
  - **Reason:** {{ pdfid['heuristics']['triage'].get('reason') }}
 {%- endif %}
+{%- endif %}
 '''
 
-    return Environment(loader=BaseLoader()).from_string(markdown).render(pdfid=json_data['pdfid'])
+    return Environment(loader=BaseLoader()).from_string(markdown).render(pdfid=json_data.get('pdfid'))
 
 
 def print_version(ctx, param, value):
@@ -222,6 +231,7 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout):
         p = PDF(file_path, verbose)
 
         pdf_dict = {'pdf': p.pdf_id()}
+        # TODO: if PDFiD fails maybe build different response JSON with errors etc.
         pdf_dict['pdf']['streams'] = p.pdf_parser()
         pdf_dict['pdf']['peepdf'] = p.peepdf()
         pdf_dict['pdf']['markdown'] = json2markdown(pdf_dict['pdf'])
@@ -245,7 +255,56 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout):
 
 @pdf.command('web', short_help='start web service')
 def web():
-    click.secho('This has not been implimented yet.', fg='yellow', bold=True)
+    """Malice PDF Plugin Web Service"""
+    app = Flask(__name__)
+    app.config['UPLOAD_FOLDER'] = '/malware'
+    # app.config['UPLOAD_FOLDER'] = 'test/web'
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+    @app.errorhandler(400)
+    def page_not_found(error):
+        return 'Bad requests: you must upload a malware', 400
+
+    @app.errorhandler(500)
+    def page_not_found(exception):
+        return 'Internal Server Error: \n{}'.format(exception), 500
+
+    @app.route('/scan', methods=['GET', 'POST'])
+    def scan():
+        if request.method == 'POST':
+            # check if the post request has the file part
+            if 'malware' not in request.files:
+                return redirect(request.url)
+            file = request.files['malware']
+            # if user does not select file, browser also
+            # submit an empty part without filename
+            if file.filename == '':
+                abort(400)
+            if file:
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                try:
+                    p = PDF(file_path, logging.INFO)
+                    # TODO: if PDFiD fails maybe build different response JSON with errors etc.
+                    pdf_dict = {'pdf': p.pdf_id()}
+                    pdf_dict['pdf']['streams'] = p.pdf_parser()
+                    pdf_dict['pdf']['peepdf'] = p.peepdf()
+                    pdf_dict['pdf']['markdown'] = json2markdown(pdf_dict['pdf'])
+                    return jsonify(pdf_dict), 200
+                except Exception as e:
+                    log.exception("failed to run malice plugin: {}".format('pdf'))
+                    return e, 500
+                finally:
+                    try:
+                        os.remove(file_path)
+                    except OSError as e:
+                        log.exception("failed to remove file {} - {}".format(e.filename, e.strerror))
+
+        return "Please upload malware to me... I thirst."
+
+    # start web service
+    app.run(host='0.0.0.0', port=3993)
 
 
 if __name__ == '__main__':

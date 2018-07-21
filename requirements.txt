@@ -4,3 +4,4 @@ nose
 # elasticsearch>=6.0.0,<7.0.0
 elasticsearch>=5.5.0,<6.0.0
 Jinja2==2.10
+Flask==1.0.2
