@@ -53,6 +53,7 @@ test-markdown:
 test_web:
 	@echo "===> Starting web service"
 	@docker run --rm -p 3993:3993 $(ORG)/$(NAME):$(VERSION) web
+	# http -f localhost:3993/scan malware@test/eicar.pdf
 
 .PHONY: run
 run: stop ## Run docker container
