@@ -37,5 +37,5 @@
  - **Reason:** `/EmbeddedFile` flag(s) detected
 
 **Triage:**
- - **Score:** `1.0`
- - **Reason:** sample is likely malicious and requires further analysis
+ - **Score:** `150`
+ - **Reason:** None

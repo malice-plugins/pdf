@@ -14,16 +14,23 @@ import unicodedata
 from os import path
 
 from . import pdf_parser as pdfparser
+from . import sha256_checksum, sha512_checksum
 from .balbuzard.patterns import PatternMatch
 
 
 class MalPdfParser(object):
 
-    def __init__(self, file_path, working_dir, pdfid_results, max_extract=5, verbose=0):
+    def __init__(self, file_path, working_dir, pdfid_results, max_extract_count=5, max_carve_size=500, verbose=0):
         self.file_path = file_path
         self.working_dir = working_dir
         self.pdfid_results = pdfid_results
-        self.max_extract = max_extract
+        self.max_extract_count = max_extract_count
+        self.max_carve_size = max_carve_size
+        self.stats = None
+        self.embedded = []
+        self.objstm = []
+        self.tags = {}
+        self.carved = {'files': [], 'contents': []}
         self.all_errors = set()
         self.log = logging.getLogger(__name__)
         self.log.setLevel(verbose)
@@ -140,6 +147,13 @@ class MalPdfParser(object):
                     if obj_file:
                         objstm_extracted.add(getobj)
                         obj_files.add(obj_file)
+                        # FIXME: Not sure this works (need a test file)
+                        self.objstm.append(
+                            dict(
+                                name=dump_file,
+                                object=obj_file,
+                                sha256=sha256_checksum(dump_file),
+                                sha512=sha512_checksum(dump_file)))
 
         return obj_files
 
@@ -154,18 +168,6 @@ class MalPdfParser(object):
         triage_keywords = set()
         # embed_present = False
         objstms = False
-        tags = set()
-
-        # if plugin:
-        #     # If any plugin results, run pdfparse
-        #     run_pdfparse = True
-        #     plres = ResultSection(title_text="Plugin Results", score=SCORE.NULL, parent=pdfidres)
-        #     for pllist in plugin:
-
-        #     # Grab suspicious properties for pdfparser
-        #     if pllist[0] == 'Triage':
-        #         triage_keywords.update(
-        #             [re.sub(r'(\"|:|/)', '', x) for x in re.findall(r'\"/[^\"]*\":', pllist[2], re.IGNORECASE)])
 
         ##############################################
         # PARSE PDFiD output                         #
@@ -179,10 +181,6 @@ class MalPdfParser(object):
                 objstms = True
             if key.get('name') in keywords and key.get('count') > 0:
                 triage_keywords.add(key.get('name').lstrip('/').strip())
-            # TODO ?!?!?!?!?!?! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # TODO: IF TRIAGE KEYWORDS FOUND ADD THEM, I COULD JUST GREP FOR THEM NOW
-            # if flist[0] in additional_keywords:
-            #     triage_keywords.add(flist[0].replace("/", "", 1))
 
         # CALL PDF parser and extract further information
         self.log.debug("PDF Parser Results")
@@ -202,11 +200,10 @@ class MalPdfParser(object):
                 if len(pdfparser_result) == 0:
                     self.log.debug("No statistical results generated for file. Please see errors.")
                 else:
-                    # TODO: OUTPUT STATS TO JSON ==================================================<<<<<<<<<<<<<<<<
-                    stats = pdfparser_result.get("stats", None)
-                    if stats:
+                    self.stats = pdfparser_result.get("stats", None)
+                    if self.stats:
                         self.log.debug("PDF Statistcs:")
-                        for p in stats:
+                        for p in self.stats:
                             self.log.debug("{}".format(p))
                 for e in errors:
                     self.all_errors.add(e)
@@ -323,7 +320,7 @@ class MalPdfParser(object):
 
                                 if pdfparser_subresult:
                                     for sub_p in pdfparser_subresult['parts']:
-                                        sub_references = sub_p.split("\n", 3)[2].replace('Referencing:', '')\
+                                        sub_references = sub_p.split("\n", 3)[2].replace('Referencing:', '') \
                                             .strip().split(", ")
                                         ptyp = sub_p.split("\n", 2)[1].replace('Type:', '').strip().replace("/", "")
                                         # If the object contains a stream, extract the object.
@@ -347,7 +344,7 @@ class MalPdfParser(object):
                                             try:
                                                 objnum = sub_p.split("\n", 1)[0].split(" ")[1]
                                                 if objnum in carved_content:
-                                                    carved_content[objnum]\
+                                                    carved_content[objnum] \
                                                         .append({keyword: pdfparser_subresult['obj_details']})
                                                 else:
                                                     carved_content[objnum] = \
@@ -396,10 +393,9 @@ class MalPdfParser(object):
                 for d in l:
                     for keyw, con in d.iteritems():
                         self.log.debug("Content for Keyword hit from Object {0}:  '{1}':".format(k, keyw))
-                        # TODO: make this value configurable
-                        if len(con) < 50:
+                        if len(con) < self.max_carve_size:
+                            self.carved['contents'].append(dict(key=keyw, content=con))
                             self.log.debug("carved_content: {}".format(con))
-                            # subres.add_line(con)
                             # Check for IOC content
                             try:
                                 patterns = PatternMatch()
@@ -411,11 +407,22 @@ class MalPdfParser(object):
                                     for ty, val in st_value.iteritems():
                                         if val == "":
                                             asc_asc = unicodedata.normalize('NFKC', val).encode('ascii', 'ignore')
+                                            ty = ty.lower()
+                                            if ty not in self.tags:
+                                                self.tags[ty] = [asc_asc]
+                                            else:
+                                                if asc_asc not in self.tags[ty]:
+                                                    self.tags[ty].append(asc_asc)
                                             self.log.debug("TAG: {}, {}".format(ty, asc_asc))
-                                            # subres.add_tag(TAG_TYPE[ty], asc_asc, TAG_WEIGHT.LOW)
                                         else:
                                             ulis = list(set(val))
                                             for v in ulis:
+                                                ty = ty.lower()
+                                                if ty not in self.tags:
+                                                    self.tags[ty] = [v]
+                                                else:
+                                                    if v not in self.tags[ty]:
+                                                        self.tags[ty].append(v)
                                                 self.log.debug("TAG: {}, {}".format(ty, v))
                         else:
                             self.log.debug("Content over 500 bytes, see extracted files: {}".format(keyw))
@@ -423,6 +430,12 @@ class MalPdfParser(object):
                                 k, keyw, carved_obj_idx))
                             with open(carvf, 'wb') as f:
                                 f.write(con)
+                            self.carved['files'].append(
+                                dict(
+                                    name=path.basename(carvf),
+                                    object=k,
+                                    sha256=sha256_checksum(carvf),
+                                    sha512=sha512_checksum(carvf)))
                             self.log.debug(carvf, "Extracted content from object {}: {}".format(k, carvf))
                             carved_obj_idx += 1
 
@@ -458,7 +471,7 @@ class MalPdfParser(object):
                         idx = 0
                         for p in sorted(parts):
                             self.log.debug(" * {}".format(p))
-                            if "Type: /EmbeddedFile" in p and (idx <= self.max_extract):
+                            if "Type: /EmbeddedFile" in p and (idx <= self.max_extract_count):
                                 getobj = p.split("\n", 1)[0].split(" ")[1]
                                 if getobj in embed_extracted:
                                     continue
@@ -488,6 +501,12 @@ class MalPdfParser(object):
                                         for f, l in files.iteritems():
                                             if f == 'embedded':
                                                 for i in l:
+                                                    self.embedded.append(
+                                                        dict(
+                                                            name=path.basename(i),
+                                                            object=getobj,
+                                                            sha256=sha256_checksum(i),
+                                                            sha512=sha512_checksum(i)))
                                                     self.log.debug("Extracted embedded file from obj {} "
                                                                    "in PDF Parser Analysis: {}".format(getobj, i))
                                     for e in err:
@@ -539,6 +558,12 @@ class MalPdfParser(object):
                         for f, l in files.iteritems():
                             if f == 'embedded':
                                 for i in l:
+                                    self.embedded.append(
+                                        dict(
+                                            name=path.basename(i),
+                                            object=o,
+                                            sha256=sha256_checksum(i),
+                                            sha512=sha512_checksum(i)))
                                     self.log.debug("Object {} extracted in PDF Parser Analysis: {}".format(o, i))
 
                     for e in errors:
@@ -551,7 +576,6 @@ class MalPdfParser(object):
 
         :return: dict: list of extracted files and their sha512 hash
         """
-        pparser = {'heuristics': {}, 'object_streams': {}, 'errors': {}}
 
         contains_objstms = self.analyze(self.file_path, self.working_dir)
 
@@ -566,5 +590,15 @@ class MalPdfParser(object):
             self.log.debug("Errors Analyzing PDF")
             for e in self.all_errors:
                 self.log.debug("[ERROR]: {}".format(e))
+
+        pparser = {
+            'stats': self.stats,
+            'embedded': self.embedded,
+            'objstm': self.objstm,
+            'tags': self.tags,
+            'carved': self.carved
+        }
+        if len(self.all_errors) > 0:
+            pparser['errors'] = self.all_errors
 
         return pparser

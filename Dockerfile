@@ -36,7 +36,7 @@ RUN apk --update add --no-cache -t .build-deps \
   && chmod +x pdfscan.py \
   && ln -s /usr/sbin/pdfscan.py /usr/sbin/pdfscan \
   && echo "\t[*] clean up..." \
-  && rm requirements.txt Dockerfile VERSION \
+  && rm requirements.txt Dockerfile \
   && apk del --purge .build-deps
 
 WORKDIR /malware

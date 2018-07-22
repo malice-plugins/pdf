@@ -6,14 +6,17 @@
 docs*
 test*
 .vscode*
+.idea*
 venv*
 go*
 peepdf*
+dump*
 
 README.md
 README.md.bu
 NOTES.md
 LICENSE
+VERSION
 circle.yml
 CHANGELOG.md
 Makefile
@@ -22,3 +25,5 @@ results.json
 pdf.py
 *.log
 Dockerfile.ubuntu
+
+peepdf*

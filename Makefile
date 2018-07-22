@@ -25,11 +25,13 @@ tar: build
 
 .PHONY: malware
 malware:
+ifeq (,$(wildcard test/eicar.pdf))
 	cd test; wget https://didierstevens.com/files/data/pdf-doc-vba-eicar-dropper.zip
 	cd test; unzip -P EICARdropper pdf-doc-vba-eicar-dropper.zip
 	cd test; mv pdf-doc-vba-eicar-dropper.pdf eicar.pdf
 	cd test; rm pdf-doc-vba-eicar-dropper.zip
 	cd test; echo "TEST" > not.pdf
+endif
 
 .PHONY: test
 test: malware
