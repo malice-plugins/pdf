@@ -92,7 +92,8 @@ clean: clean_pyc ## Clean docker image and stop all running containers
 .PHONY: clean_pyc
 clean_pyc:  ## Clean all compiled python files
 	find . -name "*.pyc" -exec rm -f {} \;
-	rm *.log
+	rm *.log || true
+	rm test/dump/* || true
 
 # Absolutely awesome: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:

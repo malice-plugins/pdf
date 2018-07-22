@@ -41,22 +41,89 @@ class MalPDFiD(object):
             return dict(score=0.0, reason='no `/EmbeddedFile` flag(s) detected')
 
     def triage(self):
-        for keyword in ('/JS', '/JavaScript', '/AA', '/OpenAction', '/AcroForm', '/JBIG2Decode', '/RichMedia',
-                        '/Launch', '/EmbeddedFile', '/XFA', '/Colors > 2^24'):
+        score = 0
+        results = {'score': 0, 'reasons': []}
+        reasons = {
+            '/JS':
+            '"/JS": indicating javascript is present in the file.\n',
+            '/JavaScript':
+            '"/JavaScript": indicating javascript is present in the file.\n',
+            '/AA':
+            '"/AA": indicating automatic action to be performed when the page/document is viewed.\n',
+            '/Annot':
+            '"/Annot": sample contains annotations. '
+            'Not suspicious but should be examined if other signs of maliciousness present.\n',
+            '/OpenAction':
+            '"/OpenAction": indicating automatic action to be performed when the page/document '
+            'is viewed."\n',
+            '/AcroForm':
+            '"/AcroForm": sample contains AcroForm object. These can be used to hide malicious code."\n',
+            '/JBIG2Decode':
+            '"/JBIG2Decode": indicating JBIG2 compression."\n',
+            '/RichMedia':
+            '"/RichMedia": indicating embedded Flash. \n',
+            '/Launch':
+            '"/Launch": counts launch actions.\n',
+            '/Encrypt':
+            '"/Encrypt": encrypted content in sample\n',
+            '/XFA':
+            '"/XFA": indicates XML Forms Architecture. These can be used to hide malicious code.\n',
+            '/Colors > 2^24':
+            '"/Colors > 2^24": hits when the number of colors is expressed with more than 3 bytes.\n',
+            '/ObjStm':
+            '"/ObjStm": sample contains object stream(s). Can be used to obfuscate objects.\n',
+            '/URI':
+            '"/URI": sample contains URLs.\n'
+        }
+
+        # Javascript - separated so we do not double-score
+        if '/JS' in self.oPDFiD.keywords and self.oPDFiD.keywords['/JS'].count > 0:
+            results['reasons'].append(reasons['/JS'])
+        if '/JavaScript' in self.oPDFiD.keywords and self.oPDFiD.keywords['/JavaScript'].count > 0:
+            results['reasons'].append(reasons['/JavaScript'])
+        if self.oPDFiD.keywords['/JavaScript'].count > 0 or self.oPDFiD.keywords['/JS'].count > 0:
+            score += 100
+        for keyword in ('/JBIG2Decode', '/Colors > 2^24'):
             if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
-                return dict(score=1.0, reason='sample is likely malicious and requires further analysis')
-            for keyword in ('/ObjStm',):
-                if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
-                    return dict(score=0.75, reason='/ObjStm detected, analyze sample with pdfid-objstm.bat')
-            for keyword in ('/URI',):
-                if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
-                    return dict(
-                        score=0.6, reason='sample is likely not malicious but could contain phishing or payload URL')
-            if self.oPDFiD.keywords['obj'].count != self.oPDFiD.keywords['endobj'].count:
-                return dict(score=0.5, reason='sample is likely not malicious but requires further analysis')
-            if self.oPDFiD.keywords['stream'].count != self.oPDFiD.keywords['endstream'].count:
-                return dict(score=0.5, reason='sample is likely not malicious but requires further analysis')
-        return dict(score=0.0, reason='sample is likely not malicious')
+                results['reasons'].append(reasons[keyword])
+                score += 50
+        # Auto open/Launch - separated so we do not double-score
+        if '/AA' in self.oPDFiD.keywords and self.oPDFiD.keywords['/AA'].count > 0:
+            results['reasons'].append(reasons['/AA'])
+        if '/OpenAction' in self.oPDFiD.keywords and self.oPDFiD.keywords['/OpenAction'].count > 0:
+            results['reasons'].append(reasons['/OpenAction'])
+        if '/Launch' in self.oPDFiD.keywords and self.oPDFiD.keywords['/Launch'].count > 0:
+            results['reasons'].append(reasons['/Launch'])
+        if self.oPDFiD.keywords['/AA'].count > 0 or self.oPDFiD.keywords['/OpenAction'].count > 0 \
+                or self.oPDFiD.keywords['/Launch'].count > 0:
+            score += 50
+        # Forms, Flash, XFA
+        for keyword in ('/AcroForm', '/RichMedia', '/XFA'):
+            if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
+                results['reasons'].append(reasons[keyword])
+                score += 25
+        # Encrypted content
+        for keyword in ['/Encrypt']:
+            if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
+                results['reasons'].append(reasons[keyword])
+                score += 25
+        # Other content to flag for PDFParser to extract, but not to score
+        for keyword in ['/Annot']:
+            if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
+                results['reasons'].append(reasons[keyword])
+                score += 1
+        for keyword in ('/ObjStm',):
+            if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
+                results['reasons'].append(reasons[keyword])
+                score += 1
+        for keyword in ['/URI']:
+            if keyword in self.oPDFiD.keywords and self.oPDFiD.keywords[keyword].count > 0:
+                results['reasons'].append(reasons[keyword])
+                score += 1
+
+        results['score'] = score
+
+        return results
 
     def suspicious(self):
         total = 0

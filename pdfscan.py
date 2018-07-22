@@ -34,6 +34,11 @@ def init_logging(verbose):
     # add ch to logger
     log.addHandler(ch)
 
+    pdfparser_logger = logging.getLogger('pdfparser.malice_pdfparser')
+    pdfparser_logger.propagate = False
+    pdfparser_logger.setLevel(verbose)
+    pdfparser_logger.addHandler(ch)
+
     # get elasticsearch logger
     es_logger = logging.getLogger('elasticsearch')
     es_logger.propagate = False
@@ -109,7 +114,8 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
         # TODO: check if PDF is too big (max size 3000000 ??)
         # TODO: if PDFiD fails maybe build different response JSON with errors etc.
         pdf_results['pdf']['pdfid'] = MalPDFiD(file_path).run()
-        pdf_results['pdf']['streams'] = MalPdfParser(file_path, extract, pdf_results['pdf']['pdfid']).run()
+        pdf_results['pdf']['streams'] = MalPdfParser(
+            file_path, extract, pdf_results['pdf']['pdfid'], verbose=verbose).run()
         # pdf_dict['pdf']['peepdf'] = MalPeepdf(file_path).run()
         pdf_results['pdf']['markdown'] = json2markdown(pdf_results['pdf'])
         malice_json = {'plugins': {'doc': pdf_results}}
@@ -179,7 +185,8 @@ def web():
                         }
                     }
                     pdf_results['pdf']['pdfid'] = MalPDFiD(file_path).run()
-                    pdf_results['pdf']['streams'] = MalPdfParser(file_path, app.config['OUTPUT_FOLDER']).run()
+                    pdf_results['pdf']['streams'] = MalPdfParser(file_path, app.config['OUTPUT_FOLDER'],
+                                                                 pdf_results['pdf']['pdfid']).run()
                     # pdf_dict['pdf']['peepdf'] = MalPeepdf(file_path).run()
                     pdf_results['pdf']['markdown'] = json2markdown(pdf_results['pdf'])
                     return jsonify(pdf_results), 200
