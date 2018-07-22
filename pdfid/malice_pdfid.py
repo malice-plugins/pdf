@@ -94,7 +94,7 @@ class MalPDFiD(object):
             raise Exception("{} is not a valid file".format(self.file))
 
         # run the parser - returns an XML DOM instance
-
+        pdf_data = pdfid.PDFiD(self.file, False, True)
         try:
             self.oPDFiD = pdfid.cPDFiD(pdf_data, force=True)
         except IndexError:
