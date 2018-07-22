@@ -2,6 +2,12 @@
 # This file is part of MaliceIO - https://github.com/malice-plugins/pdf
 # See the file 'LICENSE' for copying permission.
 
+__description__ = 'Malice PDF Plugin - pdf-parser.py helper util'
+__author__ = 'blacktop - <https://github.com/blacktop>'
+__version__ = '0.1.0'
+__date__ = '2018/07/21'
+__credit__ = 'Modified from https://bitbucket.org/cse-assemblyline/alsvc_pdfid'
+
 import logging
 import re
 import unicodedata
@@ -32,8 +38,10 @@ class MalPdfParser(object):
 
     def parse_pdfid_results(self, results):
         for key in results['keywords'].get('keyword'):
-            if '/EmbeddedFile' in key.get('name'):
+            if '/EmbeddedFile' in key.get('name') and key.get('count') > 0:
                 self.embed_present = True
+            if '/ObjStm' in key.get('name') and key.get('count') > 0:
+                self.objstms = True
 
     @staticmethod
     def get_pdfparser(file_path, working_dir, options):
@@ -45,6 +53,14 @@ class MalPdfParser(object):
         return pdfparser_statresult, errors
 
     def write_objstm(self, file_path, working_dir, objstm, objstm_path):
+        """
+
+        :param file_path:
+        :param working_dir:
+        :param objstm:
+        :param objstm_path:
+        :return:
+        """
 
         stream_present = False
         header = "%PDF-1.5\x0A%Fake header created by AL PDFID service.\x0A"
@@ -90,18 +106,21 @@ class MalPdfParser(object):
 
         return objstm_file
 
-    def analyze_objstm(self, file_path, working_dir, deep_scan):
+    def analyze_objstm(self, file_path, working_dir, extract_count=1):
+        """
+
+        :param file_path:
+        :param working_dir:
+        :param extract_count:
+        :return:
+        """
 
         objstm_extracted = set()
 
         obj_files = set()
 
-        # Only extract first 2 if not deep scan
-        if deep_scan:
-            max_obst = 100
-        else:
-            max_obst = 1  # Really 2
-        options_objstm = {"elements": "i", "type": "/ObjStm", "max_objstm": max_obst}
+        # NOTE: an extract_count of 1 is really 2
+        options_objstm = {"elements": "i", "type": "/ObjStm", "max_objstm": extract_count}
 
         try:
             pdfparser_result, _ = self.get_pdfparser(file_path, working_dir, options_objstm)
@@ -125,18 +144,26 @@ class MalPdfParser(object):
 
         return obj_files
 
-    def run(self, get_malform=True):
-        pparser = {'result': {}, 'heuristics': {}, 'objstms': {}, 'errors': {}}
+    def analyze(self, file_path, working_dir, get_malform=True):
+        """Analyze PDF with pdf-parser.py to extract embedded objects
+
+        :param file_path:
+        :param working_dir:
+        :param get_malform:
+        :return:
+        """
         # CALL PDF parser and extract further information
         # pdfparserres = ResultSection(title_text="PDF Parser Results", score=SCORE.NULL)
         # STATISTICS
         # Do not run for objstms, which are being analyzed when get_malform == False
+        self.objstms = False
+
         if get_malform:
             options = {
                 "stats": True,
             }
             try:
-                pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
+                pdfparser_result, errors = self.get_pdfparser(file_path, working_dir, options)
             except Exception as e:
                 pdfparser_result = None
                 self.log.debug(e)
@@ -188,7 +215,7 @@ class MalPdfParser(object):
                     "search": keyword,
                 }
                 try:
-                    pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
+                    pdfparser_result, errors = self.get_pdfparser(file_path, working_dir, options)
                 except Exception as e:
                     pdfparser_result = None
                     self.log.debug(e)
@@ -276,8 +303,7 @@ class MalPdfParser(object):
                                     ref_obj = c.split(" ", 1)[0]
                                     options = {"object": ref_obj, "get_object_detail": True}
                                     try:
-                                        pdfparser_subresult, err = self.get_pdfparser(
-                                            self.file_path, self.working_dir, options)
+                                        pdfparser_subresult, err = self.get_pdfparser(file_path, working_dir, options)
                                     except Exception as e:
                                         pdfparser_subresult = None
                                         err = []
@@ -406,7 +432,7 @@ class MalPdfParser(object):
                 else:
                     options = {"verbose": True, "elements": "cst", "get_malform": get_malform}
                 try:
-                    pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
+                    pdfparser_result, errors = self.get_pdfparser(file_path, working_dir, options)
                 except Exception as e:
                     pdfparser_result = None
                     self.log.debug(e)
@@ -459,8 +485,7 @@ class MalPdfParser(object):
                                             "dump": "embedded_file_obj_{0}".format(getobj),
                                         }
                                     try:
-                                        pdfparser_subresult, err = self.get_pdfparser(
-                                            self.file_path, self.working_dir, options)
+                                        pdfparser_subresult, err = self.get_pdfparser(file_path, working_dir, options)
                                     except Exception as e:
                                         pdfparser_subresult = None
                                         err = []
@@ -493,7 +518,7 @@ class MalPdfParser(object):
                     # Final check to ensure object has a stream, if not drop it.
                     options = {"object": o}
                     try:
-                        pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
+                        pdfparser_result, errors = self.get_pdfparser(file_path, working_dir, options)
                     except Exception as e:
                         pdfparser_result = None
                         self.log.debug(e)
@@ -515,7 +540,7 @@ class MalPdfParser(object):
                             "dump": "extracted_obj_{}".format(o),
                         }
                     try:
-                        pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
+                        pdfparser_result, errors = self.get_pdfparser(file_path, working_dir, options)
                     except Exception as e:
                         pdfparser_result = None
                         self.log.debug(e)
@@ -535,5 +560,23 @@ class MalPdfParser(object):
 
             # if len(pdfparserres.subsections) > 0:
             # res.add_section(pdfparserres)
+        # return res, hrs, objstms, all_errors
+
+    def run(self):
+        """Run pdf-parser.py to extract objects
+
+        :return: dict: list of extracted files and their sha512 hash
+        """
+        pparser = {'result': {}, 'heuristics': {}, 'objstms': {}, 'errors': {}}
+        all_errors = set()
+
+        self.analyze(self.file_path, self.working_dir)
+
+        #  ObjStms: Treat all ObjStms like a standalone PDF document
+        if self.objstms:
+            objstm_files = self.analyze_objstm(self.file_path, self.working_dir)
+
+            for osf in objstm_files:
+                self.analyze(osf, self.working_dir, get_malform=False)
 
         return pparser

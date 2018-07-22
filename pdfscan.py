@@ -106,6 +106,7 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
         # set up logging
         init_logging(verbose)
 
+        # TODO: check if PDF is too big (max size 3000000 ??)
         # TODO: if PDFiD fails maybe build different response JSON with errors etc.
         pdf_results['pdf']['pdfid'] = MalPDFiD(file_path).run()
         pdf_results['pdf']['streams'] = MalPdfParser(file_path, extract, pdf_results['pdf']['pdfid']).run()

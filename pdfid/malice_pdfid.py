@@ -2,6 +2,11 @@
 # This file is part of MaliceIO - https://github.com/malice-plugins/pdf
 # See the file 'LICENSE' for copying permission.
 
+__description__ = 'Malice PDF Plugin - PDFiD helper util'
+__author__ = 'blacktop - <https://github.com/blacktop>'
+__version__ = '0.1.0'
+__date__ = '2018/07/21'
+
 import json
 from os import path
 
@@ -54,7 +59,34 @@ class MalPDFiD(object):
         return dict(score=0.0, reason='sample is likely not malicious')
 
     def suspicious(self):
-        return {}
+        total = 0
+        results = {'total': 0, 'reasons': []}
+        # Entropy. Typically data outside of streams contain dictionaries & pdf entities (mostly all ASCII text).
+        if self.oPDFiD.non_stream_entropy > 6:
+            total += 500
+            results['reasons'] = dict(score=500, reason='Outside stream entropy of > 5')
+        # Pages. Many malicious PDFs will contain only one page.
+        if '/Page' in self.oPDFiD.keywords and self.oPDFiD.keywords['/Page'].count == 1:
+            total += 50
+            results['reasons'] = dict(score=50, reason='Page count of 1')
+        # Characters after last %%EOF.
+        if self.oPDFiD.last_eof_bytes > 100:
+            if self.oPDFiD.last_eof_bytes > 499:
+                total += 500
+                results['reasons'] = dict(score=500, reason='Over 500 characters after last %%EOF')
+            else:
+                total += 100
+                results['reasons'] = dict(score=100, reason='Over 100 characters after last %%EOF')
+        if self.oPDFiD.keywords['obj'].count != self.oPDFiD.keywords['endobj'].count:
+            total += 50
+            results['reasons'] = dict(score=50, reason='obj" keyword count does not equal "endobj" keyword count')
+        if self.oPDFiD.keywords['stream'].count != self.oPDFiD.keywords['endstream'].count:
+            total += 50
+            results['reasons'] = dict(score=50, reason='Sample "stream" keyword count does not equal "endstream" count')
+
+        results['total'] = total
+
+        return results
 
     def run(self):
 
@@ -62,7 +94,6 @@ class MalPDFiD(object):
             raise Exception("{} is not a valid file".format(self.file))
 
         # run the parser - returns an XML DOM instance
-        pdf_data = pdfid.PDFiD(self.file, False, True)
 
         try:
             self.oPDFiD = pdfid.cPDFiD(pdf_data, force=True)

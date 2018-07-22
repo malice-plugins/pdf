@@ -58,19 +58,20 @@ Todo:
   - code review, cleanup
 """
 
-import optparse
-import os
-import re
-import xml.dom.minidom
-import traceback
-import math
-import operator
-import os.path
-import sys
-import json
-import zipfile
 import collections
 import glob
+import json
+import math
+import operator
+import optparse
+import os
+import os.path
+import re
+import sys
+import traceback
+import xml.dom.minidom
+import zipfile
+
 if sys.version_info[0] >= 3:
     import urllib.request as urllib23
 else:
@@ -754,6 +755,12 @@ class cPDFiD():
         self.embeddedfile = self.keywords['/EmbeddedFile']
         self.xfa = self.keywords['/XFA']
         self.colors_gt_2_24 = self.keywords['/Colors > 2^24']
+
+        self.non_stream_entropy = float(xmlDoc.documentElement.getAttribute('NonStreamEntropy'))
+        try:
+            self.last_eof_bytes = int((xmlDoc.documentElement.getAttribute('CountCharsAfterLastEOF')))
+        except:
+            self.last_eof_bytes = 0
 
 
 def Print(lines, options):

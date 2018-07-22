@@ -1,0 +1,20 @@
+# malice/pdf plugin configuration.
+
+name = 'pdf'
+description = 'PDF - tool to triage PDF documents'
+category = 'doc'
+version = '0.1.0'
+
+accepts = [
+    'document/pdf',
+    'application/pdf'
+    ]
+
+
+[system]
+cpu = 0.5
+ram = 256 # MB
+
+[settings]
+max_size = 3000000 # 3 MB
+extract_limit = 10
