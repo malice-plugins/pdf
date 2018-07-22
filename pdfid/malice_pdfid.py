@@ -45,35 +45,34 @@ class MalPDFiD(object):
         results = {'score': 0, 'reasons': []}
         reasons = {
             '/JS':
-            '"/JS": indicating javascript is present in the file.\n',
+            '`/JS`: indicating javascript is present in the file.',
             '/JavaScript':
-            '"/JavaScript": indicating javascript is present in the file.\n',
+            '`/JavaScript`: indicating javascript is present in the file.',
             '/AA':
-            '"/AA": indicating automatic action to be performed when the page/document is viewed.\n',
+            '`/AA`: indicating automatic action to be performed when the page/document is viewed.',
             '/Annot':
-            '"/Annot": sample contains annotations. '
-            'Not suspicious but should be examined if other signs of maliciousness present.\n',
+            '`/Annot`: sample contains annotations.'
+            'Not suspicious but should be examined if other signs of maliciousness present.',
             '/OpenAction':
-            '"/OpenAction": indicating automatic action to be performed when the page/document '
-            'is viewed."\n',
+            '`/OpenAction`: indicating automatic action to be performed when the page/document is viewed.',
             '/AcroForm':
-            '"/AcroForm": sample contains AcroForm object. These can be used to hide malicious code."\n',
+            '`/AcroForm`: sample contains AcroForm object. These can be used to hide malicious code.',
             '/JBIG2Decode':
-            '"/JBIG2Decode": indicating JBIG2 compression."\n',
+            '`/JBIG2Decode`: indicating JBIG2 compression.',
             '/RichMedia':
-            '"/RichMedia": indicating embedded Flash. \n',
+            '`/RichMedia`: indicating embedded Flash.',
             '/Launch':
-            '"/Launch": counts launch actions.\n',
+            '`/Launch`: counts launch actions.',
             '/Encrypt':
-            '"/Encrypt": encrypted content in sample\n',
+            '`/Encrypt`: encrypted content in sample',
             '/XFA':
-            '"/XFA": indicates XML Forms Architecture. These can be used to hide malicious code.\n',
+            '`/XFA`: indicates XML Forms Architecture. These can be used to hide malicious code.',
             '/Colors > 2^24':
-            '"/Colors > 2^24": hits when the number of colors is expressed with more than 3 bytes.\n',
+            '`/Colors > 2^24`: hits when the number of colors is expressed with more than 3 bytes.',
             '/ObjStm':
-            '"/ObjStm": sample contains object stream(s). Can be used to obfuscate objects.\n',
+            '`/ObjStm`: sample contains object stream(s). Can be used to obfuscate objects.',
             '/URI':
-            '"/URI": sample contains URLs.\n'
+            '`/URI`: sample contains URLs.'
         }
 
         # Javascript - separated so we do not double-score
@@ -126,32 +125,32 @@ class MalPDFiD(object):
         return results
 
     def suspicious(self):
-        total = 0
-        results = {'total': 0, 'reasons': []}
+        score = 0
+        results = {'score': 0, 'reasons': []}
         # Entropy. Typically data outside of streams contain dictionaries & pdf entities (mostly all ASCII text).
         if self.oPDFiD.non_stream_entropy > 6:
-            total += 500
-            results['reasons'] = dict(score=500, reason='Outside stream entropy of > 5')
+            results['reasons'].append('Outside stream entropy of > 5')
+            score += 500
         # Pages. Many malicious PDFs will contain only one page.
         if '/Page' in self.oPDFiD.keywords and self.oPDFiD.keywords['/Page'].count == 1:
-            total += 50
-            results['reasons'] = dict(score=50, reason='Page count of 1')
+            results['reasons'].append('Page count of 1')
+            score += 50
         # Characters after last %%EOF.
         if self.oPDFiD.last_eof_bytes > 100:
             if self.oPDFiD.last_eof_bytes > 499:
-                total += 500
-                results['reasons'] = dict(score=500, reason='Over 500 characters after last %%EOF')
+                results['reasons'].append('Over 500 characters after last %%EOF')
+                score += 500
             else:
-                total += 100
-                results['reasons'] = dict(score=100, reason='Over 100 characters after last %%EOF')
+                results['reasons'].append('Over 100 characters after last %%EOF')
+                score += 100
         if self.oPDFiD.keywords['obj'].count != self.oPDFiD.keywords['endobj'].count:
-            total += 50
-            results['reasons'] = dict(score=50, reason='obj" keyword count does not equal "endobj" keyword count')
+            results['reasons'].append('`obj` keyword count does not equal `endobj` keyword count')
+            score += 50
         if self.oPDFiD.keywords['stream'].count != self.oPDFiD.keywords['endstream'].count:
-            total += 50
-            results['reasons'] = dict(score=50, reason='Sample "stream" keyword count does not equal "endstream" count')
+            results['reasons'].append('`stream` keyword count does not equal `endstream` count')
+            score += 50
 
-        results['total'] = total
+        results['score'] = score
 
         return results
 

@@ -4,7 +4,7 @@ NAME=pdf
 CATEGORY=doc
 VERSION=$(shell cat VERSION)
 MALWARE="test/eicar.pdf"
-
+EXTRACT="/malware/test/dump"
 
 all: build size test test-markdown
 
@@ -41,7 +41,7 @@ test: malware
 	@echo "===> ${NAME} --help"
 	@docker run --rm $(ORG)/$(NAME):$(VERSION); sleep 10
 	@echo "===> ${NAME} malware test"
-	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan --elasticsearch elasticsearch -vvvv $(MALWARE) | jq . > docs/results.json
+	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan --elasticsearch elasticsearch -vvvv --extract $(EXTRACT) $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
 .PHONY: test-markdown

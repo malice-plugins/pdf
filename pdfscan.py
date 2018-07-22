@@ -92,7 +92,7 @@ def pdf():
     metavar='SECS')
 @click.option(
     '--extract',
-    default=lambda: os.environ.get('MALICE_EXTRACT_PATH', '/malware/dump'),
+    default=lambda: os.environ.get('MALICE_EXTRACT_PATH', '/malware'),
     help='where to extract the embedded objects to',
     metavar='PATH')
 def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
@@ -102,7 +102,6 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
         'pdf': {
             'pdfid': {},
             'streams': {},
-            'heuristics': {},
             'markdown': "",
         }
     }

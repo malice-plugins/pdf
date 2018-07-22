@@ -425,7 +425,8 @@ class MalPdfParser(object):
                                                         self.tags[ty].append(v)
                                                 self.log.debug("TAG: {}, {}".format(ty, v))
                         else:
-                            self.log.debug("Content over 500 bytes, see extracted files: {}".format(keyw))
+                            self.log.debug("Content over {} bytes, see extracted files: {}".format(
+                                self.max_carve_size, keyw))
                             carvf = path.join(self.working_dir, "carved_content_obj_{0}_{1}_{2}".format(
                                 k, keyw, carved_obj_idx))
                             with open(carvf, 'wb') as f:
@@ -434,6 +435,7 @@ class MalPdfParser(object):
                                 dict(
                                     name=path.basename(carvf),
                                     object=k,
+                                    keyword=keyw,
                                     sha256=sha256_checksum(carvf),
                                     sha512=sha512_checksum(carvf)))
                             self.log.debug(carvf, "Extracted content from object {}: {}".format(k, carvf))

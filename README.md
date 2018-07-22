@@ -64,7 +64,7 @@ This will output to stdout and POST to malice results API webhook endpoint.
 
 ## Sample Output
 
-### JSON:
+### [JSON](https://github.com/malice-plugins/pdf/blob/master/docs/results.json)
 
 ```json
 {
@@ -156,11 +156,11 @@ This will output to stdout and POST to malice results API webhook endpoint.
 }
 ```
 
-### Markdown:
+### [Markdown](https://github.com/malice-plugins/pdf/blob/master/docs/SAMPLE.md)
 
 ---
 
-#### pdf
+### pdf
 
 #### PDFiD
 
@@ -195,15 +195,88 @@ This will output to stdout and POST to malice results API webhook endpoint.
 | /XFA           | 0     |
 | /Colors > 2^24 | 0     |
 
-**Embedded File:**
+##### Embedded File
 
-- **Score:** `0.9`
-- **Reason:** `/EmbeddedFile` flag(s) detected
+> **Score:** `0.9`
 
-**Triage:**
+**Reason:**
 
-- **Score:** `1.0`
-- **Reason:** sample is likely malicious and requires further analysis
+- `/EmbeddedFile` flag(s) detected
+
+##### Triage
+
+> **Score:** `150`
+
+**Reasons:**
+
+- `/JS`: indicating javascript is present in the file.
+- `/JavaScript`: indicating javascript is present in the file.
+- `/OpenAction`: indicating automatic action to be performed when the page/document is viewed.
+
+##### Suspicious Properties
+
+> **Score:** `50`
+
+**Reasons:**
+
+- Page count of 1
+
+#### pdf-parser
+
+##### Stats
+
+- `Comment: 3`
+- `XREF: 1`
+- `Trailer: 1`
+- `StartXref: 1`
+- `Indirect object: 9`
+- `1: 5`
+- `/Action 1: 9`
+- `/Catalog 1: 1`
+- `/EmbeddedFile 1: 8`
+- `/Filespec 1: 7`
+- `/Font 1: 6`
+- `/Outlines 1: 2`
+- `/Page 1: 4`
+- `/Pages 1: 3`
+
+##### Tags
+
+**file_name:**
+
+- `eicar-dropper.doc`
+  **pestudio_blacklist_string:**
+- `JavaScript`
+
+##### Embedded Files
+
+| Object | Sha256                                                           |
+| ------ | ---------------------------------------------------------------- |
+| 8      | eb0ae2d1cd318dc1adb970352e84361f9b194ff14f45b0186e4ed6696900394a |
+
+##### Carved Content
+
+**EmbeddedFile:**
+
+```
+s<<++<<            /Names [(eicar-dropper.doc) 7 0 R]    /OpenAction 9 0 R
+```
+
+**OpenAction:**
+
+```
+<<
+ /Type /Action
+ /S /JavaScript
+ /JS (this.exportDataObject({ cName: "eicar-dropper.doc", nLaunch: 2 });)
+>>
+```
+
+**JS:**
+
+```javascript
+(this.exportDataObject({ cName: "eicar-dropper.doc", nLaunch: 2 })    ; )
+```
 
 ---
 
