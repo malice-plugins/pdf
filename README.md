@@ -4,7 +4,7 @@
 
 Malice PDF Plugin
 
-> This repository contains a **Dockerfile** of **malice/pdf**.
+> This repository contains a **Dockerfile** of **malice/pdf**. It runs [PDFiD](https://blog.didierstevens.com/programs/pdf-tools/) and [pdf-parser.py](https://blog.didierstevens.com/programs/pdf-tools/) on samples and will extract and _(eventually)_ submit extracted files as children back to malice for analysis.
 
 ---
 
@@ -42,7 +42,7 @@ Commands:
 ```bash
 $ docker run --rm -v /path/to/malware:/malware malice/pdf scan --help
 
-Usage: pdfscan scan [OPTIONS] FILE_PATH
+Usage: pdfscan.py scan [OPTIONS] FILE_PATH
 
   Malice PDF Plugin.
 
@@ -53,10 +53,11 @@ Options:
                            [$MALICE_PROXY]
   -c, --callback ENDPOINT  POST results back to Malice webhook
                            [$MALICE_ENDPOINT]
-  --elasticsearch HOST     elasticsearch address for Malice to store
-                           results [$MALICE_ELASTICSEARCH]
+  --elasticsearch HOST     elasticsearch address for Malice to store results
+                           [$MALICE_ELASTICSEARCH]
   --timeout SECS           malice plugin timeout (default: 10)
                            [$MALICE_TIMEOUT]
+  --extract PATH           where to extract the embedded objects to
   -h, --help               Show this message and exit.
 ```
 
@@ -307,11 +308,11 @@ Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucke
 ### TODO
 
 - [x] add PDFiD
-- [ ] add pdf-parser for streams
-- [ ] add peepdf for JS
+- [x] add pdf-parser for streams
+- [ ] ~~add peepdf for JS~~
 - [ ] add uwsgi to serve webserver (maybe nginx?)
-- [ ] add better error handling for bad input files or failed PDFiD, etc
-- [ ] use https://github.com/unidoc/unidoc instead??
+- [ ] float PDFiD errors up like I do with pdf-parser _(handles errors when file is not a PDF)_
+- [ ] use https://github.com/unidoc/unidoc instead?? I miss you golang, I miss you soooo hard :tired_face:
 
 ### License
 
