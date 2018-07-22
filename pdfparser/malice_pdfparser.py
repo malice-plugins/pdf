@@ -13,9 +13,14 @@ from .balbuzard.patterns import PatternMatch
 
 class MalPdfParser(object):
 
-    def __init__(self, file_path, working_dir):
+    def __init__(self, file_path, working_dir, pdfid_results):
         self.file_path = file_path
         self.working_dir = working_dir
+        self.all_errors = set()
+        self.triage_keywords = set()
+        self.embed_present = False
+        self.objstms = False
+        self.hrs = set()
         self.log = logging.getLogger(__name__)
 
         if not path.exists(self.file_path):
@@ -23,16 +28,23 @@ class MalPdfParser(object):
         if not path.isdir(self.working_dir):
             raise Exception("extraction path does not exist: {}".format(self.working_dir))
 
+        self.parse_pdfid_results(pdfid_results)
+
+    def parse_pdfid_results(self, results):
+        for key in results['keywords'].get('keyword'):
+            if '/EmbeddedFile' in key.get('name'):
+                self.embed_present = True
+
     @staticmethod
-    def get_pdfparser(path, working_dir, options):
+    def get_pdfparser(file_path, working_dir, options):
         try:
-            pdfparser_statresult, errors = pdfparser.PDFParserMain(path, working_dir, **options)
+            pdfparser_statresult, errors = pdfparser.PDFParserMain(file_path, working_dir, **options)
         except Exception as e:
             raise Exception("PDFParser failed to run on sample. Error: {}".format(e))
 
         return pdfparser_statresult, errors
 
-    def write_objstm(self, path, working_dir, objstm, objstm_path):
+    def write_objstm(self, file_path, working_dir, objstm, objstm_path):
 
         stream_present = False
         header = "%PDF-1.5\x0A%Fake header created by AL PDFID service.\x0A"
@@ -47,7 +59,7 @@ class MalPdfParser(object):
             "raw": True,
         }
         try:
-            pdfparser_subresult, err = self.get_pdfparser(path, working_dir, options)
+            pdfparser_subresult, _ = self.get_pdfparser(file_path, working_dir, options)
         except Exception as e:
             pdfparser_subresult = None
             self.log.debug(e)
@@ -78,7 +90,7 @@ class MalPdfParser(object):
 
         return objstm_file
 
-    def analyze_objstm(self, path, working_dir, deep_scan):
+    def analyze_objstm(self, file_path, working_dir, deep_scan):
 
         objstm_extracted = set()
 
@@ -92,7 +104,7 @@ class MalPdfParser(object):
         options_objstm = {"elements": "i", "type": "/ObjStm", "max_objstm": max_obst}
 
         try:
-            pdfparser_result, errors = self.get_pdfparser(path, working_dir, options_objstm)
+            pdfparser_result, _ = self.get_pdfparser(file_path, working_dir, options_objstm)
             parts = pdfparser_result.get("parts", None)
         except Exception as e:
             parts = None
@@ -104,18 +116,19 @@ class MalPdfParser(object):
                     getobj = p.split("\n", 1)[0].split(" ")[1]
                     if getobj in objstm_extracted:
                         continue
-                    dump_file = path.join(self.working_directory, "objstm_{0}_{1}".format(getobj, idx))
+                    dump_file = path.join(self.working_dir, "objstm_{0}_{1}".format(getobj, idx))
                     idx += 1
-                    obj_file = self.write_objstm(path, working_dir, getobj, dump_file)
+                    obj_file = self.write_objstm(file_path, working_dir, getobj, dump_file)
                     if obj_file:
                         objstm_extracted.add(getobj)
                         obj_files.add(obj_file)
 
         return obj_files
 
-    def run(self):
+    def run(self, get_malform=True):
+        pparser = {'result': {}, 'heuristics': {}, 'objstms': {}, 'errors': {}}
         # CALL PDF parser and extract further information
-        pdfparserres = ResultSection(title_text="PDF Parser Results", score=SCORE.NULL)
+        # pdfparserres = ResultSection(title_text="PDF Parser Results", score=SCORE.NULL)
         # STATISTICS
         # Do not run for objstms, which are being analyzed when get_malform == False
         if get_malform:
@@ -123,49 +136,50 @@ class MalPdfParser(object):
                 "stats": True,
             }
             try:
-                pdfparser_result, errors = self.get_pdfparser(path, working_dir, options)
+                pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
             except Exception as e:
                 pdfparser_result = None
                 self.log.debug(e)
 
             if pdfparser_result:
                 if len(pdfparser_result) == 0:
-                    pdfparserres.add_line("No statistical results generated for file. Please see errors.")
+                    print("No statistical results generated for file. Please see errors.")
+                    # pdfparserres.add_line("No statistical results generated for file. Please see errors.")
                 else:
                     version = pdfparser_result.get("version", None)
-                    if version:
-                        pdfparserres.add_line(version[0])
+                    # if version:
+                    # pdfparserres.add_line(version[0])
                     stats = pdfparser_result.get("stats", None)
-                    if stats:
-                        sres = ResultSection(
-                            title_text="PDF Statistcs",
-                            score=SCORE.NULL,
-                            parent=pdfparserres,
-                            body_format=TEXT_FORMAT.MEMORY_DUMP)
-                        for p in stats:
-                            sres.add_line(p)
+                    # if stats:
+                    #     sres = ResultSection(
+                    #         title_text="PDF Statistcs",
+                    #         score=SCORE.NULL,
+                    #         parent=pdfparserres,
+                    #         body_format=TEXT_FORMAT.MEMORY_DUMP)
+                    #     for p in stats:
+                    #         sres.add_line(p)
                 for e in errors:
-                    all_errors.add(e)
+                    self.all_errors.add(e)
 
             # Triage plugin -- search sample for keywords and carve content or extract object (if it contains a stream)
             carved_content = {}  # Format { "objnum": [{keyword: content list}}
             obj_extract_triage = set()
             jbig_objs = set()
 
-            for keyword in triage_keywords:
+            for keyword in self.triage_keywords:
                 # Heuristics
-                if keyword in ['AA', 'OpenAction', 'Launch']:
-                    hrs.add(PDFId.AL_PDFID_001)
-                if keyword == 'JBIG2Decode':
-                    hrs.add(PDFId.AL_PDFID_003)
-                if keyword == 'AcroForm':
-                    hrs.add(PDFId.AL_PDFID_004)
-                if keyword == 'RichMedia':
-                    hrs.add(PDFId.AL_PDFID_005)
-                if keyword == 'Encrypt':
-                    hrs.add(PDFId.AL_PDFID_011)
+                # if keyword in ['AA', 'OpenAction', 'Launch']:
+                #     self.hrs.add(PDFId.AL_PDFID_001)
+                # if keyword == 'JBIG2Decode':
+                #     self.hrs.add(PDFId.AL_PDFID_003)
+                # if keyword == 'AcroForm':
+                #     self.hrs.add(PDFId.AL_PDFID_004)
+                # if keyword == 'RichMedia':
+                #     self.hrs.add(PDFId.AL_PDFID_005)
+                # if keyword == 'Encrypt':
+                #     self.hrs.add(PDFId.AL_PDFID_011)
 
-                res.add_tag('FILE_STRING', keyword, weight=0)
+                # res.add_tag('FILE_STRING', keyword, weight=0)
                 # ObjStms handled differently
                 if keyword == 'ObjStm':
                     continue
@@ -174,7 +188,7 @@ class MalPdfParser(object):
                     "search": keyword,
                 }
                 try:
-                    pdfparser_result, errors = self.get_pdfparser(path, working_dir, options)
+                    pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
                 except Exception as e:
                     pdfparser_result = None
                     self.log.debug(e)
@@ -255,14 +269,15 @@ class MalPdfParser(object):
                                 break
                         for c in content:
                             # If keyword = Javascript and content starts with '/JS', disregard as 'JS' will be extracted
-                            if "JS" in triage_keywords and keyword == "JavaScript" and "/JS" in c[0:5]:
+                            if "JS" in self.triage_keywords and keyword == "JavaScript" and "/JS" in c[0:5]:
                                 continue
                             if c in references or re.match("[0-9]* [0-9]* R", c):
                                 try:
                                     ref_obj = c.split(" ", 1)[0]
                                     options = {"object": ref_obj, "get_object_detail": True}
                                     try:
-                                        pdfparser_subresult, err = self.get_pdfparser(path, working_dir, options)
+                                        pdfparser_subresult, err = self.get_pdfparser(
+                                            self.file_path, self.working_dir, options)
                                     except Exception as e:
                                         pdfparser_subresult = None
                                         err = []
@@ -327,35 +342,35 @@ class MalPdfParser(object):
                                         carved_content[objnum] = [{keyword: c}]
 
                     for e in errors:
-                        all_errors.add(e)
+                        self.all_errors.add(e)
 
             # Add carved content to result output
-            if len(carved_content) > 0 or len(jbig_objs) > 0:
-                carres = ResultSection(title_text="Content of Interest", score=SCORE.NULL, parent=pdfparserres)
-            else:
-                carres = None
+            # if len(carved_content) > 0 or len(jbig_objs) > 0:
+            #     carres = ResultSection(title_text="Content of Interest", score=SCORE.NULL, parent=pdfparserres)
+            # else:
+            #     carres = None
 
-            if len(jbig_objs) > 0:
-                jbigres = ResultSection(
-                    title_text="The following Object IDs were extracted unfiltered as "
-                    "JBIG2Decode keyword detected:",
-                    score=SCORE.NULL,
-                    body_format=TEXT_FORMAT.MEMORY_DUMP,
-                    parent=carres)
-                for jo in jbig_objs:
-                    jbigres.add_line(jo)
+            # if len(jbig_objs) > 0:
+            # jbigres = ResultSection(
+            #     title_text="The following Object IDs were extracted unfiltered as "
+            #     "JBIG2Decode keyword detected:",
+            #     score=SCORE.NULL,
+            #     body_format=TEXT_FORMAT.MEMORY_DUMP,
+            #     parent=carres)
+            # for jo in jbig_objs:
+            #     jbigres.add_line(jo)
             if len(carved_content) > 0:
                 for k, l in sorted(carved_content.iteritems()):
                     carved_obj_idx = 0
                     for d in l:
                         for keyw, con in d.iteritems():
-                            subres = ResultSection(
-                                title_text="Content for Keyword hit from Object {0}:  '{1}':".format(k, keyw),
-                                score=SCORE.NULL,
-                                body_format=TEXT_FORMAT.MEMORY_DUMP,
-                                parent=carres)
+                            # subres = ResultSection(
+                            #     title_text="Content for Keyword hit from Object {0}:  '{1}':".format(k, keyw),
+                            #     score=SCORE.NULL,
+                            #     body_format=TEXT_FORMAT.MEMORY_DUMP,
+                            #     parent=carres)
                             if len(con) < 500:
-                                subres.add_line(con)
+                                # subres.add_line(con)
                                 # Check for IOC content
                                 try:
                                     patterns = PatternMatch()
@@ -367,31 +382,31 @@ class MalPdfParser(object):
                                         for ty, val in st_value.iteritems():
                                             if val == "":
                                                 asc_asc = unicodedata.normalize('NFKC', val).encode('ascii', 'ignore')
-                                                subres.add_tag(TAG_TYPE[ty], asc_asc, TAG_WEIGHT.LOW)
+                                                # subres.add_tag(TAG_TYPE[ty], asc_asc, TAG_WEIGHT.LOW)
                                             else:
                                                 ulis = list(set(val))
-                                                for v in ulis:
-                                                    subres.add_tag(TAG_TYPE[ty], v, TAG_WEIGHT.LOW)
+                                                # for v in ulis:
+                                                #     subres.add_tag(TAG_TYPE[ty], v, TAG_WEIGHT.LOW)
                             else:
-                                subres.add_line("Content over 500 bytes, see extracted files".format(keyw))
-                                carvf = path.join(self.working_directory, "carved_content_obj_{0}_{1}_{2}".format(
+                                # subres.add_line("Content over 500 bytes, see extracted files".format(keyw))
+                                carvf = path.join(self.working_dir, "carved_content_obj_{0}_{1}_{2}".format(
                                     k, keyw, carved_obj_idx))
                                 with open(carvf, 'wb') as f:
                                     f.write(con)
-                                request.add_extracted(carvf, "Extracted content from object {}".format(k))
+                                # request.add_extracted(carvf, "Extracted content from object {}".format(k))
                                 carved_obj_idx += 1
 
             # ELEMENTS
             # Do not show for objstms
             if get_malform:
-                if request.deep_scan:
-                    options = {"verbose": True, "nocanonicalizedoutput": True, "get_malform": get_malform}
-                elif embed_present:
+                # if True:
+                #     options = {"verbose": True, "nocanonicalizedoutput": True, "get_malform": get_malform}
+                if self.embed_present:
                     options = {"verbose": True, "elements": "ctsi", "type": "/EmbeddedFile", "get_malform": get_malform}
                 else:
                     options = {"verbose": True, "elements": "cst", "get_malform": get_malform}
                 try:
-                    pdfparser_result, errors = self.get_pdfparser(path, working_dir, options)
+                    pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
                 except Exception as e:
                     pdfparser_result = None
                     self.log.debug(e)
@@ -399,7 +414,8 @@ class MalPdfParser(object):
                 embed_extracted = set()
                 if pdfparser_result:
                     if len(pdfparser_result) == 0:
-                        pdfparserres.add_line("No structure information generated for file. Please see errors.")
+                        print("No structure information generated for file. Please see errors.")
+                        # pdfparserres.add_line("No structure information generated for file. Please see errors.")
                     else:
                         # PDF Parser will write any malformed content over 100 bytes to a file
                         files = pdfparser_result.get("files", None)
@@ -407,24 +423,26 @@ class MalPdfParser(object):
                             for f, l in files.iteritems():
                                 if f == 'malformed':
                                     for i in l:
-                                        request.add_extracted(i, "Extracted malformed content in PDF Parser Analysis.")
+                                        print("Extracted malformed content in PDF Parser Analysis.")
+                                        # request.add_extracted(i, "Extracted malformed content in PDF Parser Analysis.")
 
                         parts = pdfparser_result.get("parts", None)
+
                         # Extract any embedded files
                         if parts:
                             # Extract max of 5 files in regular mode
-                            if request.deep_scan:
-                                max_extract = 100
-                            else:
-                                max_extract = 5
-                            pres = ResultSection(
-                                title_text="PDF Elements",
-                                score=SCORE.NULL,
-                                parent=pdfparserres,
-                                body_format=TEXT_FORMAT.MEMORY_DUMP)
+                            # if request.deep_scan:
+                            #     max_extract = 100
+                            # else:
+                            max_extract = 5
+                            # pres = ResultSection(
+                            #     title_text="PDF Elements",
+                            #     score=SCORE.NULL,
+                            #     parent=pdfparserres,
+                            #     body_format=TEXT_FORMAT.MEMORY_DUMP)
                             idx = 0
                             for p in sorted(parts):
-                                pres.add_line(p)
+                                # pres.add_line(p)
                                 if "Type: /EmbeddedFile" in p and (idx <= max_extract):
                                     getobj = p.split("\n", 1)[0].split(" ")[1]
                                     if getobj in embed_extracted:
@@ -441,7 +459,8 @@ class MalPdfParser(object):
                                             "dump": "embedded_file_obj_{0}".format(getobj),
                                         }
                                     try:
-                                        pdfparser_subresult, err = self.get_pdfparser(path, working_dir, options)
+                                        pdfparser_subresult, err = self.get_pdfparser(
+                                            self.file_path, self.working_dir, options)
                                     except Exception as e:
                                         pdfparser_subresult = None
                                         err = []
@@ -450,21 +469,23 @@ class MalPdfParser(object):
                                     if pdfparser_subresult:
                                         files = pdfparser_subresult.get("files", None)
                                         if files:
-                                            res.add_tag('FILE_STRING', "EmbeddedFile", weight=0)
+                                            # res.add_tag('FILE_STRING', "EmbeddedFile", weight=0)
                                             embed_extracted.add(getobj)
                                             for f, l in files.iteritems():
                                                 if f == 'embedded':
                                                     for i in l:
-                                                        request.add_extracted(
-                                                            i, "Extracted embedded file from obj {} "
-                                                            "in PDF Parser Analysis.".format(getobj))
+                                                        print("Extracted embedded file from obj {} "
+                                                              "in PDF Parser Analysis.".format(getobj))
+                                                        # request.add_extracted(
+                                                        #     i, "Extracted embedded file from obj {} "
+                                                        #     "in PDF Parser Analysis.".format(getobj))
                                         for e in err:
-                                            all_errors.add(e)
+                                            self.all_errors.add(e)
 
                                         idx += 1
 
                     for e in errors:
-                        all_errors.add(e)
+                        self.all_errors.add(e)
 
                 # Extract objects collected from above analysis
                 obj_to_extract = obj_extract_triage - embed_extracted
@@ -472,7 +493,7 @@ class MalPdfParser(object):
                     # Final check to ensure object has a stream, if not drop it.
                     options = {"object": o}
                     try:
-                        pdfparser_result, errors = self.get_pdfparser(path, working_dir, options)
+                        pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
                     except Exception as e:
                         pdfparser_result = None
                         self.log.debug(e)
@@ -494,7 +515,7 @@ class MalPdfParser(object):
                             "dump": "extracted_obj_{}".format(o),
                         }
                     try:
-                        pdfparser_result, errors = self.get_pdfparser(path, working_dir, options)
+                        pdfparser_result, errors = self.get_pdfparser(self.file_path, self.working_dir, options)
                     except Exception as e:
                         pdfparser_result = None
                         self.log.debug(e)
@@ -505,13 +526,14 @@ class MalPdfParser(object):
                             for f, l in files.iteritems():
                                 if f == 'embedded':
                                     for i in l:
-                                        request.add_extracted(i,
-                                                              "Object {} extracted in PDF Parser Analysis.".format(o))
+                                        print("Object {} extracted in PDF Parser Analysis.".format(o))
+                                        # request.add_extracted(i,
+                                        #                       "Object {} extracted in PDF Parser Analysis.".format(o))
 
                         for e in errors:
-                            all_errors.add(e)
+                            self.all_errors.add(e)
 
-            if len(pdfparserres.subsections) > 0:
-                res.add_section(pdfparserres)
+            # if len(pdfparserres.subsections) > 0:
+            # res.add_section(pdfparserres)
 
-        return res, hrs, objstms, all_errors
+        return pparser

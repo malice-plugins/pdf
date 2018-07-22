@@ -108,7 +108,7 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
 
         # TODO: if PDFiD fails maybe build different response JSON with errors etc.
         pdf_results['pdf']['pdfid'] = MalPDFiD(file_path).run()
-        pdf_results['pdf']['streams'] = MalPdfParser(file_path, extract).run()
+        pdf_results['pdf']['streams'] = MalPdfParser(file_path, extract, pdf_results['pdf']['pdfid']).run()
         # pdf_dict['pdf']['peepdf'] = MalPeepdf(file_path).run()
         pdf_results['pdf']['markdown'] = json2markdown(pdf_results['pdf'])
         malice_json = {'plugins': {'doc': pdf_results}}
