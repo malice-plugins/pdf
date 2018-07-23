@@ -163,7 +163,7 @@ This will output to stdout and POST to malice results API webhook endpoint.
 
 ### pdf
 
-#### PDFiD
+#### [PDFiD]
 
 - **PDF Header:** `%PDF-1.1`
 - **Total Entropy:** `7.873045`
@@ -198,17 +198,13 @@ This will output to stdout and POST to malice results API webhook endpoint.
 
 ##### Embedded File
 
-> **Score:** `0.9`
-
-**Reason:**
+> **Score:** `50`
 
 - `/EmbeddedFile` flag(s) detected
 
 ##### Triage
 
 > **Score:** `150`
-
-**Reasons:**
 
 - `/JS`: indicating javascript is present in the file.
 - `/JavaScript`: indicating javascript is present in the file.
@@ -218,11 +214,9 @@ This will output to stdout and POST to malice results API webhook endpoint.
 
 > **Score:** `50`
 
-**Reasons:**
-
 - Page count of 1
 
-#### pdf-parser
+#### [pdf-parser]
 
 ##### Stats
 
@@ -241,12 +235,14 @@ This will output to stdout and POST to malice results API webhook endpoint.
 - `/Page 1: 4`
 - `/Pages 1: 3`
 
-##### Tags
+##### TAGS
 
 **file_name:**
 
 - `eicar-dropper.doc`
-  **pestudio_blacklist_string:**
+
+**pestudio_blacklist_string:**
+
 - `JavaScript`
 
 ##### Embedded Files

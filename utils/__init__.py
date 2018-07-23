@@ -21,7 +21,7 @@ def json2markdown(json_data):
     markdown = '''
 ### pdf
 {% if pdfid is not none -%}
-#### PDFiD
+#### [PDFiD]
  - **PDF Header:** `{{ pdfid['header'] }}`
  - **Total Entropy:** `{{ pdfid['totalEntropy'] }}`
  - **Entropy In Streams:** `{{ pdfid['streamEntropy'] }}`
@@ -37,21 +37,16 @@ def json2markdown(json_data):
 {% if pdfid['heuristics']['embeddedfile'].get('score') > 0 %}
 ##### Embedded File
 > **Score:** `{{ pdfid['heuristics']['embeddedfile'].get('score') }}`
-
-**Reason:**
  - {{ pdfid['heuristics']['embeddedfile'].get('reason') }}
 {%- endif %}
 {% if pdfid['heuristics']['nameobfuscation'].get('score') > 0 -%}
 ##### Name Obfuscation
 > **Score:** `{{ pdfid['heuristics']['nameobfuscation'].get('score') }}`
-**Reason:**
  - {{ pdfid['heuristics']['nameobfuscation'].get('reason') }}
 {%- endif %}
 {% if pdfid['heuristics']['triage'].get('score') > 0 -%}
 ##### Triage
 > **Score:** `{{ pdfid['heuristics']['triage'].get('score') }}`
-
-**Reasons:**
 {% for reason in pdfid['heuristics']['triage'].get('reasons') -%}
  - {{ reason }}
 {% endfor -%}
@@ -59,15 +54,13 @@ def json2markdown(json_data):
 {% if pdfid['heuristics']['suspicious'].get('score') > 0 -%}
 ##### Suspicious Properties
 > **Score:** `{{ pdfid['heuristics']['suspicious'].get('score') }}`
-
-**Reasons:**
 {% for reason in pdfid['heuristics']['suspicious'].get('reasons') -%}
  - {{ reason }}
 {% endfor -%}
 {%- endif %}
 {%- endif %}
 {% if streams is not none -%}
-#### pdf-parser
+#### [pdf-parser]
 
 ##### Stats
 {% for stat in streams.get('stats') -%}
@@ -75,12 +68,12 @@ def json2markdown(json_data):
 {% endfor -%}
 
 {% if streams.get('tags') %}
-##### Tags
+##### TAGS
 {% for key, values in streams.get('tags').items() -%}
 **{{ key }}:**
 {% for v in values -%}
  - `{{ v }}`
-{% endfor -%}
+{% endfor %}
 {% endfor -%}
 {%- endif %}
 {% if streams.get('embedded') -%}

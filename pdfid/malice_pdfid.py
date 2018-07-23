@@ -27,18 +27,18 @@ class MalPDFiD(object):
     #################
     def nameobfuscation(self):
         if sum([oCount.hexcode for oCount in self.oPDFiD.keywords.values()]) > 0:
-            return dict(score=1.0, reason='hex encoded flag(s) detected')
+            return dict(score=1000, reason='hex encoded flag(s) detected')
         else:
-            return dict(score=0.0, reason='no hex encoded flags detected')
+            return dict(score=0, reason='no hex encoded flags detected')
 
     def embeddedfile(self):
         if '/EmbeddedFile' in self.oPDFiD.keywords and self.oPDFiD.keywords['/EmbeddedFile'].count > 0:
             if self.oPDFiD.keywords['/EmbeddedFile'].hexcode > 0:
-                return dict(score=1.0, reason='`/EmbeddedFile` flag(s) are hex encoded')
+                return dict(score=1000, reason='`/EmbeddedFile` flag(s) are hex encoded')
             else:
-                return dict(score=0.9, reason='`/EmbeddedFile` flag(s) detected')
+                return dict(score=50, reason='`/EmbeddedFile` flag(s) detected')
         else:
-            return dict(score=0.0, reason='no `/EmbeddedFile` flag(s) detected')
+            return dict(score=0, reason='no `/EmbeddedFile` flag(s) detected')
 
     def triage(self):
         score = 0
