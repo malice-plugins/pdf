@@ -1,3 +1,5 @@
+![pdf logo](https://github.com/malice-plugins/pdf/blob/master/docs/pdf.png)
+
 # malice-pdf
 
 [![Circle CI](https://circleci.com/gh/malice-plugins/pdf.png?style=shield)](https://circleci.com/gh/malice-plugins/pdf) [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org) [![Docker Stars](https://img.shields.io/docker/stars/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Pulls](https://img.shields.io/docker/pulls/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Image](https://img.shields.io/badge/docker%20image-62.4MB-blue.svg)](https://hub.docker.com/r/malice/pdf/)
