@@ -310,6 +310,8 @@ Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucke
 - [ ] ~~add peepdf for JS~~
 - [ ] add uwsgi to serve webserver (maybe nginx?)
 - [ ] float PDFiD errors up like I do with pdf-parser _(handles errors when file is not a PDF)_
+- [ ] check if PDF is too big (max size 3000000 ??)
+- [ ] add smart timeout to avoid DoS samples
 - [ ] use https://github.com/unidoc/unidoc instead?? I miss you golang, I miss you soooo hard :tired_face:
 
 ### License

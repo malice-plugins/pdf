@@ -5,8 +5,9 @@ CATEGORY=document
 VERSION=$(shell cat VERSION)
 MALWARE="test/eicar.pdf"
 EXTRACT="/malware/test/dump"
+MALICE_SCANID ?= ""
 
-all: build size test test-markdown
+all: build size test test_markdown
 
 build: ## Build docker image
 	docker build -t $(ORG)/$(NAME):$(VERSION) .
@@ -44,12 +45,17 @@ test: malware
 	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan --elasticsearch elasticsearch -vvvv --extract $(EXTRACT) $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
-.PHONY: test-markdown
-test-markdown:
+.PHONY: test_markdown
+test_markdown:
 	@echo "===> ${NAME} pull MarkDown from elasticsearch results"
 	@http localhost:9200/malice/_search | jq . > docs/elastic.json
 	@cat docs/elastic.json | jq '.hits.hits[] ._source.plugins.${CATEGORY}' | jq -r '.["${NAME}"].markdown' > docs/SAMPLE.md
 	@docker rm -f elasticsearch
+
+.PHONY: test_malice
+test_malice:
+	@echo "===> $(ORG)/$(NAME):$(VERSION) testing with running malice elasticsearch DB (update existing sample)"
+	@docker run --rm -e MALICE_SCANID=$(MALICE_SCANID) --link malice-elastic:elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -t -vvvv --elasticsearch malice-elastic --extract $(EXTRACT) $(MALWARE)
 
 .PHONY: test_web
 test_web:
