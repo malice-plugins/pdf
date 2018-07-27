@@ -55,7 +55,7 @@ test_markdown:
 .PHONY: test_malice
 test_malice:
 	@echo "===> $(ORG)/$(NAME):$(VERSION) testing with running malice elasticsearch DB (update existing sample)"
-	@docker run --rm -e MALICE_SCANID=$(MALICE_SCANID) --link malice-elastic:elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -t -vvvv --elasticsearch elasticsearch --extract $(EXTRACT) $(MALWARE)
+	@docker run --rm -e MALICE_SCANID=$(MALICE_SCANID) -e MALICE_ELASTICSEARCH=elasticsearch --link malice-elastic:elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -t -vvvv $(MALWARE)
 
 .PHONY: test_web
 test_web:

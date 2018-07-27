@@ -122,8 +122,11 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
 
         # write to elasticsearch
         if eshost:
-            e = Elastic(eshost, timeout=timeout)
-            e.write(results=malice_scan)
+            try:
+                e = Elastic(eshost, timeout=timeout)
+                e.write(results=malice_scan)
+            except Exception as e:
+                log.exception("failed to index malice/pdf results into elasticsearch")
 
         if table:
             print(malice_scan['results']['markdown'])
