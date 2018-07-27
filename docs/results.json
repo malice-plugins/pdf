@@ -1,206 +1,204 @@
 {
-  "pdf": {
-    "streams": {
-      "objstm": [],
-      "stats": [
-        "Comment: 3",
-        "XREF: 1",
-        "Trailer: 1",
-        "StartXref: 1",
-        "Indirect object: 9",
-        " 1: 5",
-        "/Action 1: 9",
-        "/Catalog 1: 1",
-        "/EmbeddedFile 1: 8",
-        "/Filespec 1: 7",
-        "/Font 1: 6",
-        "/Outlines 1: 2",
-        "/Page 1: 4",
-        "/Pages 1: 3"
-      ],
-      "carved": {
-        "files": [],
-        "contents": [
-          {
-            "content": "s<<++<<            /Names [(eicar-dropper.doc) 7 0 R]    /OpenAction 9 0 R",
-            "key": "EmbeddedFile"
-          },
-          {
-            "content": "\r\n<<\r\n /Type /Action\r\n /S /JavaScript\r\n /JS (this.exportDataObject({ cName: \"eicar-dropper.doc\", nLaunch: 2 });)\r\n>>\r\n",
-            "key": "OpenAction"
-          },
-          {
-            "content": "(this.exportDataObject({ cName: \"eicar-dropper.doc\", nLaunch: 2 })    ; )",
-            "key": "JS"
-          }
-        ]
-      },
-      "embedded": [
+  "streams": {
+    "objstm": [],
+    "stats": [
+      "Comment: 3",
+      "XREF: 1",
+      "Trailer: 1",
+      "StartXref: 1",
+      "Indirect object: 9",
+      " 1: 5",
+      "/Action 1: 9",
+      "/Catalog 1: 1",
+      "/EmbeddedFile 1: 8",
+      "/Filespec 1: 7",
+      "/Font 1: 6",
+      "/Outlines 1: 2",
+      "/Page 1: 4",
+      "/Pages 1: 3"
+    ],
+    "carved": {
+      "files": [],
+      "contents": [
         {
-          "sha256": "eb0ae2d1cd318dc1adb970352e84361f9b194ff14f45b0186e4ed6696900394a",
-          "sha512": "95ea6f056c438577910663d84a1b7582b767a3da6beb1af3579c937b58455ed49e2e2301e1e43ff1c0de2e6b1705cd0b095f4340698d73e735a27feb7258d901",
-          "name": "embedded_file_obj_8",
-          "object": "8"
+          "content": "s<<++<<            /Names [(eicar-dropper.doc) 7 0 R]    /OpenAction 9 0 R",
+          "key": "EmbeddedFile"
+        },
+        {
+          "content": "\r\n<<\r\n /Type /Action\r\n /S /JavaScript\r\n /JS (this.exportDataObject({ cName: \"eicar-dropper.doc\", nLaunch: 2 });)\r\n>>\r\n",
+          "key": "OpenAction"
+        },
+        {
+          "content": "(this.exportDataObject({ cName: \"eicar-dropper.doc\", nLaunch: 2 })    ; )",
+          "key": "JS"
         }
+      ]
+    },
+    "embedded": [
+      {
+        "sha256": "eb0ae2d1cd318dc1adb970352e84361f9b194ff14f45b0186e4ed6696900394a",
+        "sha512": "95ea6f056c438577910663d84a1b7582b767a3da6beb1af3579c937b58455ed49e2e2301e1e43ff1c0de2e6b1705cd0b095f4340698d73e735a27feb7258d901",
+        "name": "embedded_file_obj_8",
+        "object": "8"
+      }
+    ],
+    "tags": {
+      "file_name": [
+        "eicar-dropper.doc"
       ],
-      "tags": {
-        "file_name": [
-          "eicar-dropper.doc"
+      "pestudio_blacklist_string": [
+        "JavaScript"
+      ]
+    }
+  },
+  "markdown": "\n### pdf\n#### [PDFiD]\n - **PDF Header:** `%PDF-1.1`\n - **Total Entropy:** `7.873045`\n - **Entropy In Streams:** `7.970107`\n - **Entropy Out Streams:** `4.896895`\n - **Count %% EOF:** `1`\n - **Data After EOF:** `0`\n\n| Keyword     | Count     |\n|-------------|-----------|\n| obj      | 9        |\n| endobj      | 9        |\n| stream      | 2        |\n| endstream      | 2        |\n| xref      | 1        |\n| trailer      | 1        |\n| startxref      | 1        |\n| /Page      | 1        |\n| /Encrypt      | 0        |\n| /ObjStm      | 0        |\n| /JS      | 1        |\n| /JavaScript      | 1        |\n| /AA      | 0        |\n| /OpenAction      | 1        |\n| /AcroForm      | 0        |\n| /JBIG2Decode      | 0        |\n| /RichMedia      | 0        |\n| /Launch      | 0        |\n| /EmbeddedFile      | 1        |\n| /XFA      | 0        |\n| /Colors > 2^24      | 0        |\n\n##### Embedded File\n> **Score:** `50`\n - `/EmbeddedFile` flag(s) detected\n\n##### Triage\n> **Score:** `150`\n- `/JS`: indicating javascript is present in the file.\n- `/JavaScript`: indicating javascript is present in the file.\n- `/OpenAction`: indicating automatic action to be performed when the page/document is viewed.\n\n##### Suspicious Properties\n> **Score:** `50`\n- Page count of 1\n\n#### [pdf-parser]\n\n##### Stats\n- `Comment: 3`\n- `XREF: 1`\n- `Trailer: 1`\n- `StartXref: 1`\n- `Indirect object: 9`\n- ` 1: 5`\n- `/Action 1: 9`\n- `/Catalog 1: 1`\n- `/EmbeddedFile 1: 8`\n- `/Filespec 1: 7`\n- `/Font 1: 6`\n- `/Outlines 1: 2`\n- `/Page 1: 4`\n- `/Pages 1: 3`\n\n##### TAGS\n**file_name:**\n- `eicar-dropper.doc`\n\n**pestudio_blacklist_string:**\n- `JavaScript`\n\n\n##### Embedded Files\n| Object      | Sha256   |\n|-------------|----------|\n| 8 | eb0ae2d1cd318dc1adb970352e84361f9b194ff14f45b0186e4ed6696900394a |\n\n\n\n##### Carved Content\n**EmbeddedFile:**\n```\ns<<++<<            /Names [(eicar-dropper.doc) 7 0 R]    /OpenAction 9 0 R\n```\n**OpenAction:**\n```\n\r\n<<\r\n /Type /Action\r\n /S /JavaScript\r\n /JS (this.exportDataObject({ cName: \"eicar-dropper.doc\", nLaunch: 2 });)\r\n>>\r\n\n```\n**JS:**\n```javascript\n(this.exportDataObject({ cName: \"eicar-dropper.doc\", nLaunch: 2 })    ; )\n```\n",
+  "pdfid": {
+    "heuristics": {
+      "embeddedfile": {
+        "reason": "`/EmbeddedFile` flag(s) detected",
+        "score": 50
+      },
+      "nameobfuscation": {
+        "reason": "no hex encoded flags detected",
+        "score": 0
+      },
+      "suspicious": {
+        "reasons": [
+          "Page count of 1"
         ],
-        "pestudio_blacklist_string": [
-          "JavaScript"
-        ]
+        "score": 50
+      },
+      "triage": {
+        "reasons": [
+          "`/JS`: indicating javascript is present in the file.",
+          "`/JavaScript`: indicating javascript is present in the file.",
+          "`/OpenAction`: indicating automatic action to be performed when the page/document is viewed."
+        ],
+        "score": 150
       }
     },
-    "markdown": "\n### pdf\n#### [PDFiD]\n - **PDF Header:** `%PDF-1.1`\n - **Total Entropy:** `7.873045`\n - **Entropy In Streams:** `7.970107`\n - **Entropy Out Streams:** `4.896895`\n - **Count %% EOF:** `1`\n - **Data After EOF:** `0`\n\n| Keyword     | Count     |\n|-------------|-----------|\n| obj      | 9        |\n| endobj      | 9        |\n| stream      | 2        |\n| endstream      | 2        |\n| xref      | 1        |\n| trailer      | 1        |\n| startxref      | 1        |\n| /Page      | 1        |\n| /Encrypt      | 0        |\n| /ObjStm      | 0        |\n| /JS      | 1        |\n| /JavaScript      | 1        |\n| /AA      | 0        |\n| /OpenAction      | 1        |\n| /AcroForm      | 0        |\n| /JBIG2Decode      | 0        |\n| /RichMedia      | 0        |\n| /Launch      | 0        |\n| /EmbeddedFile      | 1        |\n| /XFA      | 0        |\n| /Colors > 2^24      | 0        |\n\n##### Embedded File\n> **Score:** `50`\n - `/EmbeddedFile` flag(s) detected\n\n##### Triage\n> **Score:** `150`\n- `/JS`: indicating javascript is present in the file.\n- `/JavaScript`: indicating javascript is present in the file.\n- `/OpenAction`: indicating automatic action to be performed when the page/document is viewed.\n\n##### Suspicious Properties\n> **Score:** `50`\n- Page count of 1\n\n#### [pdf-parser]\n\n##### Stats\n- `Comment: 3`\n- `XREF: 1`\n- `Trailer: 1`\n- `StartXref: 1`\n- `Indirect object: 9`\n- ` 1: 5`\n- `/Action 1: 9`\n- `/Catalog 1: 1`\n- `/EmbeddedFile 1: 8`\n- `/Filespec 1: 7`\n- `/Font 1: 6`\n- `/Outlines 1: 2`\n- `/Page 1: 4`\n- `/Pages 1: 3`\n\n##### TAGS\n**file_name:**\n- `eicar-dropper.doc`\n\n**pestudio_blacklist_string:**\n- `JavaScript`\n\n\n##### Embedded Files\n| Object      | Sha256   |\n|-------------|----------|\n| 8 | eb0ae2d1cd318dc1adb970352e84361f9b194ff14f45b0186e4ed6696900394a |\n\n\n\n##### Carved Content\n**EmbeddedFile:**\n```\ns<<++<<            /Names [(eicar-dropper.doc) 7 0 R]    /OpenAction 9 0 R\n```\n**OpenAction:**\n```\n\r\n<<\r\n /Type /Action\r\n /S /JavaScript\r\n /JS (this.exportDataObject({ cName: \"eicar-dropper.doc\", nLaunch: 2 });)\r\n>>\r\n\n```\n**JS:**\n```javascript\n(this.exportDataObject({ cName: \"eicar-dropper.doc\", nLaunch: 2 })    ; )\n```\n",
-    "pdfid": {
-      "heuristics": {
-        "embeddedfile": {
-          "reason": "`/EmbeddedFile` flag(s) detected",
-          "score": 50
+    "countChatAfterLastEof": "0",
+    "errorMessage": "",
+    "dates": {
+      "date": []
+    },
+    "nonStreamEntropy": "4.896895",
+    "header": "%PDF-1.1",
+    "version": "0.2.4",
+    "entropy": "",
+    "totalEntropy": "7.873045",
+    "isPdf": "True",
+    "keywords": {
+      "keyword": [
+        {
+          "count": 9,
+          "hexcodecount": 0,
+          "name": "obj"
         },
-        "nameobfuscation": {
-          "reason": "no hex encoded flags detected",
-          "score": 0
+        {
+          "count": 9,
+          "hexcodecount": 0,
+          "name": "endobj"
         },
-        "suspicious": {
-          "reasons": [
-            "Page count of 1"
-          ],
-          "score": 50
+        {
+          "count": 2,
+          "hexcodecount": 0,
+          "name": "stream"
         },
-        "triage": {
-          "reasons": [
-            "`/JS`: indicating javascript is present in the file.",
-            "`/JavaScript`: indicating javascript is present in the file.",
-            "`/OpenAction`: indicating automatic action to be performed when the page/document is viewed."
-          ],
-          "score": 150
+        {
+          "count": 2,
+          "hexcodecount": 0,
+          "name": "endstream"
+        },
+        {
+          "count": 1,
+          "hexcodecount": 0,
+          "name": "xref"
+        },
+        {
+          "count": 1,
+          "hexcodecount": 0,
+          "name": "trailer"
+        },
+        {
+          "count": 1,
+          "hexcodecount": 0,
+          "name": "startxref"
+        },
+        {
+          "count": 1,
+          "hexcodecount": 0,
+          "name": "/Page"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/Encrypt"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/ObjStm"
+        },
+        {
+          "count": 1,
+          "hexcodecount": 0,
+          "name": "/JS"
+        },
+        {
+          "count": 1,
+          "hexcodecount": 0,
+          "name": "/JavaScript"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/AA"
+        },
+        {
+          "count": 1,
+          "hexcodecount": 0,
+          "name": "/OpenAction"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/AcroForm"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/JBIG2Decode"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/RichMedia"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/Launch"
+        },
+        {
+          "count": 1,
+          "hexcodecount": 0,
+          "name": "/EmbeddedFile"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/XFA"
+        },
+        {
+          "count": 0,
+          "hexcodecount": 0,
+          "name": "/Colors > 2^24"
         }
-      },
-      "countChatAfterLastEof": "0",
-      "errorMessage": "",
-      "dates": {
-        "date": []
-      },
-      "nonStreamEntropy": "4.896895",
-      "header": "%PDF-1.1",
-      "version": "0.2.4",
-      "entropy": "",
-      "totalEntropy": "7.873045",
-      "isPdf": "True",
-      "keywords": {
-        "keyword": [
-          {
-            "count": 9,
-            "hexcodecount": 0,
-            "name": "obj"
-          },
-          {
-            "count": 9,
-            "hexcodecount": 0,
-            "name": "endobj"
-          },
-          {
-            "count": 2,
-            "hexcodecount": 0,
-            "name": "stream"
-          },
-          {
-            "count": 2,
-            "hexcodecount": 0,
-            "name": "endstream"
-          },
-          {
-            "count": 1,
-            "hexcodecount": 0,
-            "name": "xref"
-          },
-          {
-            "count": 1,
-            "hexcodecount": 0,
-            "name": "trailer"
-          },
-          {
-            "count": 1,
-            "hexcodecount": 0,
-            "name": "startxref"
-          },
-          {
-            "count": 1,
-            "hexcodecount": 0,
-            "name": "/Page"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/Encrypt"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/ObjStm"
-          },
-          {
-            "count": 1,
-            "hexcodecount": 0,
-            "name": "/JS"
-          },
-          {
-            "count": 1,
-            "hexcodecount": 0,
-            "name": "/JavaScript"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/AA"
-          },
-          {
-            "count": 1,
-            "hexcodecount": 0,
-            "name": "/OpenAction"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/AcroForm"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/JBIG2Decode"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/RichMedia"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/Launch"
-          },
-          {
-            "count": 1,
-            "hexcodecount": 0,
-            "name": "/EmbeddedFile"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/XFA"
-          },
-          {
-            "count": 0,
-            "hexcodecount": 0,
-            "name": "/Colors > 2^24"
-          }
-        ]
-      },
-      "countEof": "1",
-      "streamEntropy": "7.970107",
-      "errorOccured": "False"
-    }
+      ]
+    },
+    "countEof": "1",
+    "streamEntropy": "7.970107",
+    "errorOccured": "False"
   }
 }

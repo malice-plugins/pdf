@@ -1,7 +1,7 @@
 REPO=malice-plugins/pdf
 ORG=malice
 NAME=pdf
-CATEGORY=doc
+CATEGORY=document
 VERSION=$(shell cat VERSION)
 MALWARE="test/eicar.pdf"
 EXTRACT="/malware/test/dump"

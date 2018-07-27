@@ -99,11 +99,8 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
     """Malice PDF Plugin."""
 
     pdf_results = {
-        'pdf': {
-            'pdfid': {},
-            'streams': {},
-            'markdown': "",
-        }
+        'pdfid': {},
+        'streams': {},
     }
 
     try:
@@ -112,20 +109,24 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
 
         # TODO: check if PDF is too big (max size 3000000 ??)
         # TODO: if PDFiD fails maybe build different response JSON with errors etc.
-        pdf_results['pdf']['pdfid'] = MalPDFiD(file_path).run()
-        pdf_results['pdf']['streams'] = MalPdfParser(
-            file_path, extract, pdf_results['pdf']['pdfid'], verbose=verbose).run()
+        pdf_results['pdfid'] = MalPDFiD(file_path).run()
+        pdf_results['streams'] = MalPdfParser(file_path, extract, pdf_results['pdfid'], verbose=verbose).run()
         # pdf_dict['pdf']['peepdf'] = MalPeepdf(file_path).run()
-        pdf_results['pdf']['markdown'] = json2markdown(pdf_results['pdf'])
-        malice_json = {'plugins': {'doc': pdf_results}}
+        malice_scan = {
+            'id': os.environ.get('MALICE_SCANID', sha256_checksum(file_path)),
+            'name': 'pdf',
+            'category': 'document',
+            'results': pdf_results
+        }
+        malice_scan['results']['markdown'] = json2markdown(pdf_results)
 
         # write to elasticsearch
         if eshost:
             e = Elastic(eshost, timeout=timeout)
-            e.write(id=os.environ.get('MALICE_SCANID', sha256_checksum(file_path)), doc=malice_json)
+            e.write(results=malice_scan)
 
         if table:
-            print(malice_json['plugins']['doc']['pdf']['markdown'])
+            print(malice_scan['results']['markdown'])
         else:
             print(json.dumps(pdf_results, indent=True))
 
@@ -137,8 +138,8 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
                     'http': proxy,
                     'https': proxy,
                 }
-            malice_json['parent'] = os.environ.get('MALICE_SCANID', sha256_checksum(file_path))
-            requests.post(callback, json=malice_json, proxies=proxies)
+            malice_scan['parent'] = os.environ.get('MALICE_SCANID', sha256_checksum(file_path))
+            requests.post(callback, json=malice_scan, proxies=proxies)
 
     except Exception as e:
         log.exception("failed to run malice plugin: pdf")

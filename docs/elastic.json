@@ -16,8 +16,9 @@
         "_id": "86a96ec03ba8242c1486456d67ee17f919128754846dbb3bdf5e836059091dba",
         "_score": 1,
         "_source": {
+          "scan_date": "2018-07-27T16:56:05.171802",
           "plugins": {
-            "doc": {
+            "document": {
               "pdf": {
                 "streams": {
                   "objstm": [],
