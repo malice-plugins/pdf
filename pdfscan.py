@@ -122,16 +122,23 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
         # write to elasticsearch
         if eshost:
             e = Elastic(eshost, timeout=timeout)
-            e.write(id=sha256_checksum(file_path), doc=malice_json)
+            e.write(id=os.environ.get('MALICE_SCANID', sha256_checksum(file_path)), doc=malice_json)
 
         if table:
             print(malice_json['plugins']['doc']['pdf']['markdown'])
         else:
             print(json.dumps(pdf_results, indent=True))
 
+        # POST dropped files as a JSON blob back to malice server/daemon
         if callback:
-            # TODO: use proxy
-            requests.post(callback, json=malice_json)
+            proxies = None
+            if proxy:
+                proxies = {
+                    'http': proxy,
+                    'https': proxy,
+                }
+            malice_json['parent'] = os.environ.get('MALICE_SCANID', sha256_checksum(file_path))
+            requests.post(callback, json=malice_json, proxies=proxies)
 
     except Exception as e:
         log.exception("failed to run malice plugin: pdf")
