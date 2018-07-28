@@ -42,7 +42,7 @@ endif
 test: malware
 	@echo "===> Starting elasticsearch"
 	@docker rm -f elasticsearch || true
-	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch:5.5
+	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch:6.3
 	@echo "===> ${NAME} --help"
 	@docker run --rm $(ORG)/$(NAME):$(VERSION); sleep 10
 	@echo "===> ${NAME} malware test"
