@@ -31,7 +31,7 @@ class MalPdfParser(object):
         self.objstm = []
         self.tags = {}
         self.carved = {'files': [], 'contents': []}
-        self.all_errors = set()
+        self.all_errors = []
         self.log = logging.getLogger(__name__)
         self.log.setLevel(verbose)
 
@@ -57,6 +57,11 @@ class MalPdfParser(object):
             raise Exception("PDFParser failed to run on sample. Error: {}".format(e))
 
         return pdfparser_statresult, errors
+
+    @staticmethod
+    def add_uniq(iarray, item):
+        if item not in iarray:
+            iarray.append(item)
 
     def write_objstm(self, file_path, working_dir, objstm, objstm_path):
         """
@@ -206,7 +211,7 @@ class MalPdfParser(object):
                         for p in self.stats:
                             self.log.debug("{}".format(p))
                 for e in errors:
-                    self.all_errors.add(e)
+                    self.add_uniq(self.all_errors, e)
 
         # Triage plugin -- search sample for keywords and carve content or extract object (if it contains a stream)
         carved_content = {}  # Format { "objnum": [{keyword: content list}}
@@ -377,7 +382,7 @@ class MalPdfParser(object):
                                     carved_content[objnum] = [{keyword: c}]
 
                 for e in errors:
-                    self.all_errors.add(e)
+                    self.add_uniq(self.all_errors, e)
 
         # Add carved content to result output
         if len(carved_content) > 0 or len(jbig_objs) > 0:
@@ -512,12 +517,12 @@ class MalPdfParser(object):
                                                     self.log.debug("Extracted embedded file from obj {} "
                                                                    "in PDF Parser Analysis: {}".format(getobj, i))
                                     for e in err:
-                                        self.all_errors.add(e)
+                                        self.add_uniq(self.all_errors, e)
 
                                     idx += 1
 
                 for e in errors:
-                    self.all_errors.add(e)
+                    self.add_uniq(self.all_errors, e)
 
             #####################################################
             # Extract objects collected from above analysis     #
@@ -569,7 +574,7 @@ class MalPdfParser(object):
                                     self.log.debug("Object {} extracted in PDF Parser Analysis: {}".format(o, i))
 
                     for e in errors:
-                        self.all_errors.add(e)
+                        self.add_uniq(self.all_errors, e)
 
         return objstms
 
