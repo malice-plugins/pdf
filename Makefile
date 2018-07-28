@@ -7,7 +7,7 @@ MALWARE="test/eicar.pdf"
 EXTRACT="/malware/test/dump"
 MALICE_SCANID ?= ""
 
-all: build size test test_markdown
+all: build tag size test test_markdown
 
 build: ## Build docker image
 	docker build -t $(ORG)/$(NAME):$(VERSION) .
@@ -15,6 +15,10 @@ build: ## Build docker image
 .PHONY: size
 size: build ## Get built image size
 	sed -i.bu 's/docker%20image-.*-blue/docker%20image-$(shell docker images --format "{{.Size}}" $(ORG)/$(NAME):$(VERSION)| cut -d' ' -f1)-blue/' README.md
+
+.PHONY: tag
+tag:
+	docker tag $(ORG)/$(NAME):$(VERSION) $(ORG)/$(NAME):latest
 
 .PHONY: tags
 tags:
