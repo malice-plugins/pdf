@@ -1,9 +1,10 @@
 {
-  "took": 43,
+  "took": 52,
   "timed_out": false,
   "_shards": {
     "total": 5,
     "successful": 5,
+    "skipped": 0,
     "failed": 0
   },
   "hits": {
@@ -16,7 +17,7 @@
         "_id": "86a96ec03ba8242c1486456d67ee17f919128754846dbb3bdf5e836059091dba",
         "_score": 1,
         "_source": {
-          "scan_date": "2018-07-27T16:56:05.171802",
+          "scan_date": "2018-07-29T00:25:06.894709",
           "plugins": {
             "document": {
               "pdf": {

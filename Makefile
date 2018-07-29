@@ -7,13 +7,14 @@ MALWARE="test/eicar.pdf"
 EXTRACT="/malware/test/dump"
 MALICE_SCANID ?= ""
 
-all: build tag size test test_markdown
+all: build size tag test test_markdown
 
-build: ## Build docker image
-	docker build -t $(ORG)/$(NAME):$(VERSION) .
+.PHONY: build
+build:
+	cd $(VERSION); docker build -t $(ORG)/$(NAME):$(VERSION) .
 
 .PHONY: size
-size: build ## Get built image size
+size:
 	sed -i.bu 's/docker%20image-.*-blue/docker%20image-$(shell docker images --format "{{.Size}}" $(ORG)/$(NAME):$(VERSION)| cut -d' ' -f1)-blue/' README.md
 
 .PHONY: tag
@@ -24,9 +25,23 @@ tag:
 tags:
 	docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" $(ORG)/$(NAME)
 
+.PHONY: ssh
+ssh:
+	@docker run --init -it --rm --entrypoint=bash $(ORG)/$(NAME):$(VERSION)
+
 .PHONY: tar
-tar: build
-	@docker save $(ORG)/$(NAME):$(VERSION) -o $(NAME).tar
+tar:
+	docker save $(ORG)/$(NAME):$(VERSION) -o $(NAME).tar
+
+.PHONY: start_elasticsearch
+start_elasticsearch:
+ifeq ("$(shell docker inspect -f {{.State.Running}} elasticsearch)", "true")
+	@echo "===> elasticsearch already running"
+else
+	@echo "===> Starting elasticsearch"
+	@docker rm -f elasticsearch || true
+	@docker run --init -d --name elasticsearch -p 9200:9200 malice/elasticsearch:6.3; sleep 10
+endif
 
 .PHONY: malware
 malware:
@@ -40,21 +55,26 @@ endif
 
 .PHONY: test
 test: malware
-	@echo "===> Starting elasticsearch"
-	@docker rm -f elasticsearch || true
-	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch:6.3
 	@echo "===> ${NAME} --help"
 	@docker run --rm $(ORG)/$(NAME):$(VERSION); sleep 10
 	@echo "===> ${NAME} malware test"
-	@docker run --rm --link elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan --elasticsearch elasticsearch -vvvv --extract $(EXTRACT) $(MALWARE) | jq . > docs/results.json
+	@docker run --rm -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv --extract $(EXTRACT) $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
+.PHONY: test_elastic
+test_elastic: start_elasticsearch malware
+	@echo "===> ${NAME} test_elastic found"
+	docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH=elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv --extract $(EXTRACT) $(MALWARE)
+	# @echo "===> ${NAME} test_elastic NOT found"
+	# docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH=elasticsearch $(ORG)/$(NAME):$(VERSION) -V --api ${MALICE_VT_API} lookup $(MISSING_HASH)
+	http localhost:9200/malice/_search | jq . > docs/elastic.json
+
 .PHONY: test_markdown
-test_markdown:
-	@echo "===> ${NAME} pull MarkDown from elasticsearch results"
-	@http localhost:9200/malice/_search | jq . > docs/elastic.json
-	@cat docs/elastic.json | jq '.hits.hits[] ._source.plugins.${CATEGORY}' | jq -r '.["${NAME}"].markdown' > docs/SAMPLE.md
-	@docker rm -f elasticsearch
+test_markdown: test_elastic
+	@echo "===> ${NAME} test_markdown"
+	# http localhost:9200/malice/_search query:=@docs/query.json | jq . > docs/elastic.json
+	cat docs/elastic.json | jq -r '.hits.hits[] ._source.plugins.${CATEGORY}.${NAME}.markdown' > docs/SAMPLE.md
+
 
 .PHONY: test_malice
 test_malice:
