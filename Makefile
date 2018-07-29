@@ -102,6 +102,7 @@ ssh: ## SSH into docker image
 stop: ## Kill running docker containers
 	@docker rm -f $(NAME) || true
 
+.PHONY: circle
 circle: ci-size
 	@sed -i.bu 's/docker%20image-.*-blue/docker%20image-$(shell cat .circleci/SIZE)-blue/' README.md
 	@echo "===> Image size is: $(shell cat .circleci/SIZE)"

@@ -1,5 +1,5 @@
 {
-  "took": 52,
+  "took": 5,
   "timed_out": false,
   "_shards": {
     "total": 5,
@@ -17,7 +17,7 @@
         "_id": "86a96ec03ba8242c1486456d67ee17f919128754846dbb3bdf5e836059091dba",
         "_score": 1,
         "_source": {
-          "scan_date": "2018-07-29T00:25:06.894709",
+          "scan_date": "2018-07-29T00:26:00.909285",
           "plugins": {
             "document": {
               "pdf": {
@@ -59,8 +59,8 @@
                   "embedded": [
                     {
                       "sha256": "eb0ae2d1cd318dc1adb970352e84361f9b194ff14f45b0186e4ed6696900394a",
-                      "sha512": "95ea6f056c438577910663d84a1b7582b767a3da6beb1af3579c937b58455ed49e2e2301e1e43ff1c0de2e6b1705cd0b095f4340698d73e735a27feb7258d901",
                       "name": "embedded_file_obj_8",
+                      "sha512": "95ea6f056c438577910663d84a1b7582b767a3da6beb1af3579c937b58455ed49e2e2301e1e43ff1c0de2e6b1705cd0b095f4340698d73e735a27feb7258d901",
                       "object": "8"
                     }
                   ],
@@ -114,108 +114,108 @@
                     "keyword": [
                       {
                         "count": 9,
-                        "hexcodecount": 0,
-                        "name": "obj"
+                        "name": "obj",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 9,
-                        "hexcodecount": 0,
-                        "name": "endobj"
+                        "name": "endobj",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 2,
-                        "hexcodecount": 0,
-                        "name": "stream"
+                        "name": "stream",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 2,
-                        "hexcodecount": 0,
-                        "name": "endstream"
+                        "name": "endstream",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 1,
-                        "hexcodecount": 0,
-                        "name": "xref"
+                        "name": "xref",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 1,
-                        "hexcodecount": 0,
-                        "name": "trailer"
+                        "name": "trailer",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 1,
-                        "hexcodecount": 0,
-                        "name": "startxref"
+                        "name": "startxref",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 1,
-                        "hexcodecount": 0,
-                        "name": "/Page"
+                        "name": "/Page",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/Encrypt"
+                        "name": "/Encrypt",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/ObjStm"
+                        "name": "/ObjStm",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 1,
-                        "hexcodecount": 0,
-                        "name": "/JS"
+                        "name": "/JS",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 1,
-                        "hexcodecount": 0,
-                        "name": "/JavaScript"
+                        "name": "/JavaScript",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/AA"
+                        "name": "/AA",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 1,
-                        "hexcodecount": 0,
-                        "name": "/OpenAction"
+                        "name": "/OpenAction",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/AcroForm"
+                        "name": "/AcroForm",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/JBIG2Decode"
+                        "name": "/JBIG2Decode",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/RichMedia"
+                        "name": "/RichMedia",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/Launch"
+                        "name": "/Launch",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 1,
-                        "hexcodecount": 0,
-                        "name": "/EmbeddedFile"
+                        "name": "/EmbeddedFile",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/XFA"
+                        "name": "/XFA",
+                        "hexcodecount": 0
                       },
                       {
                         "count": 0,
-                        "hexcodecount": 0,
-                        "name": "/Colors > 2^24"
+                        "name": "/Colors > 2^24",
+                        "hexcodecount": 0
                       }
                     ]
                   },
