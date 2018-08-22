@@ -7,7 +7,7 @@ MALWARE="test/eicar.pdf"
 EXTRACT="/malware/test/dump"
 MALICE_SCANID ?= ""
 
-all: build size tag test test_markdown
+all: build size tag test_all
 
 .PHONY: build
 build:
@@ -53,18 +53,21 @@ ifeq (,$(wildcard test/eicar.pdf))
 	cd test; echo "TEST" > not.pdf
 endif
 
+.PHONY: test_all
+test_all: test test_elastic test_markdown test_web
+
 .PHONY: test
 test: malware
 	@echo "===> ${NAME} --help"
 	@docker run --rm $(ORG)/$(NAME):$(VERSION); sleep 10
 	@echo "===> ${NAME} malware test"
-	@docker run --rm -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv --extract $(EXTRACT) $(MALWARE) | jq . > docs/results.json
+	@docker run --rm -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
 .PHONY: test_elastic
 test_elastic: start_elasticsearch malware
 	@echo "===> ${NAME} test_elastic found"
-	docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH=elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv --extract $(EXTRACT) $(MALWARE)
+	docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH=elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE)
 	# @echo "===> ${NAME} test_elastic NOT found"
 	# docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH=elasticsearch $(ORG)/$(NAME):$(VERSION) -V --api ${MALICE_VT_API} lookup $(MISSING_HASH)
 	http localhost:9200/malice/_search | jq . > docs/elastic.json
@@ -75,17 +78,19 @@ test_markdown: test_elastic
 	# http localhost:9200/malice/_search query:=@docs/query.json | jq . > docs/elastic.json
 	cat docs/elastic.json | jq -r '.hits.hits[] ._source.plugins.${CATEGORY}.${NAME}.markdown' > docs/SAMPLE.md
 
-
 .PHONY: test_malice
 test_malice:
 	@echo "===> $(ORG)/$(NAME):$(VERSION) testing with running malice elasticsearch DB (update existing sample)"
 	@docker run --rm -e MALICE_SCANID=$(MALICE_SCANID) -e MALICE_ELASTICSEARCH=elasticsearch --link malice-elastic:elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -t -vvvv $(MALWARE)
 
 .PHONY: test_web
-test_web:
+test_web: malware stop
 	@echo "===> Starting web service"
-	@docker run --rm -p 3993:3993 $(ORG)/$(NAME):$(VERSION) web
-	# http -f localhost:3993/scan malware@test/eicar.pdf
+	@docker run -d --name $(NAME) -p 3993:3993 $(ORG)/$(NAME):$(VERSION) web
+	sleep 5; http -f localhost:3993/scan malware@$(MALWARE)
+	@echo "===> Stopping web service"
+	@docker logs $(NAME)
+	@docker rm -f $(NAME)
 
 .PHONY: run
 run: stop ## Run docker container

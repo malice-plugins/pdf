@@ -90,18 +90,14 @@ def pdf():
     default=lambda: os.environ.get('MALICE_TIMEOUT', 10),
     help='malice plugin timeout (default: 10) [$MALICE_TIMEOUT]',
     metavar='SECS')
+@click.option('-d', '--dump', is_flag=True, help='dump possibly embedded binaries')
 @click.option(
-    '--extract',
+    '--output',
     default=lambda: os.environ.get('MALICE_EXTRACT_PATH', '/malware'),
-    help='where to extract the embedded objects to',
+    help='where to extract the embedded objects to (default: /malware) [$MALICE_EXTRACT_PATH]',
     metavar='PATH')
-def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
+def scan(file_path, verbose, table, proxy, callback, eshost, timeout, dump, output):
     """Malice PDF Plugin."""
-
-    pdf_results = {
-        'pdfid': {},
-        'streams': {},
-    }
 
     try:
         # set up logging
@@ -109,8 +105,12 @@ def scan(file_path, verbose, table, proxy, callback, eshost, timeout, extract):
 
         # TODO: check if PDF is too big (max size 3000000 ??)
         # TODO: if PDFiD fails maybe build different response JSON with errors etc.
-        pdf_results['pdfid'] = MalPDFiD(file_path).run()
-        pdf_results['streams'] = MalPdfParser(file_path, extract, pdf_results['pdfid'], verbose=verbose).run()
+        pdfid_results = MalPDFiD(file_path).run()
+        pdf_results = {
+            'pdfid': pdfid_results,
+            'streams': MalPdfParser(file_path, pdfid_results, should_dump=dump, dump_path=output,
+                                    verbose=verbose).run(),
+        }
         # pdf_dict['pdf']['peepdf'] = MalPeepdf(file_path).run()
         malice_scan = {
             'id': os.environ.get('MALICE_SCANID', sha256_checksum(file_path)),
@@ -195,10 +195,11 @@ def web():
                         }
                     }
                     pdf_results['pdf']['pdfid'] = MalPDFiD(file_path).run()
-                    pdf_results['pdf']['streams'] = MalPdfParser(file_path, app.config['OUTPUT_FOLDER'],
-                                                                 pdf_results['pdf']['pdfid']).run()
+                    pdf_results['pdf']['streams'] = MalPdfParser(
+                        file_path, pdf_results['pdf']['pdfid'], should_dump=True,
+                        dump_path=app.config['OUTPUT_FOLDER']).run()
                     # pdf_dict['pdf']['peepdf'] = MalPeepdf(file_path).run()
-                    pdf_results['pdf']['markdown'] = json2markdown(pdf_results['pdf'])
+                    # pdf_results['pdf']['markdown'] = json2markdown(pdf_results['pdf'])
                     return jsonify(pdf_results), 200
                 except Exception as e:
                     log.exception("failed to run malice plugin: {}".format('pdf'))
