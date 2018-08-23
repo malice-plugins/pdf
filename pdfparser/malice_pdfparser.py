@@ -29,6 +29,7 @@ class MalPdfParser(object):
                  max_carve_size=500,
                  verbose=0):
         self.file_path = file_path
+        self.should_dump = should_dump
         self.dump_dir = dump_path
         self.pdfid_results = pdfid_results
         self.max_extract_count = max_extract_count
@@ -44,9 +45,10 @@ class MalPdfParser(object):
 
         if not path.exists(self.file_path):
             raise Exception("file does not exist: {}".format(self.file_path))
-        if should_dump and not path.isdir(dump_path):
-            self.log.error("extraction folder does not exist: {}".format(dump_path))
-            self.dump_dir = None
+        if self.should_dump:
+            if not path.isdir(dump_path):
+                self.should_dump = False
+                self.log.error("extraction folder does not exist: {}".format(dump_path))
 
         self.parse_pdfid_results(pdfid_results)
 
@@ -202,6 +204,7 @@ class MalPdfParser(object):
         if get_malform:
             options = {
                 "stats": True,
+                "dump": self.should_dump,
             }
             try:
                 pdfparser_result, errors = self.get_pdfparser(file_path, dump_dir, options)
