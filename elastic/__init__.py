@@ -21,8 +21,7 @@ class Elastic(object):
         self.doc_type = os.environ.get('MALICE_ELASTICSEARCH_TYPE', 'samples')
         self.username = os.environ.get('MALICE_ELASTICSEARCH_USERNAME', '')
         self.password = os.environ.get('MALICE_ELASTICSEARCH_PASSWORD', '')
-        # self.es = elasticsearch.Elasticsearch(elastic_host, http_auth=(self.username, self.password))
-        self.es = elasticsearch.Elasticsearch(elastic_host)
+        self.es = elasticsearch.Elasticsearch(elastic_host, http_auth=(self.username, self.password))
 
         # wait for elasticsearch to finish starting
         for _ in range(timeout):

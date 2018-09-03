@@ -43,7 +43,6 @@ endif
 	@echo "===> Starting elasticsearch"
 	@docker run --init -d --name elasticsearch -p 9200:9200 malice/elasticsearch:6.4; sleep 15
 
-
 .PHONY: malware
 malware:
 ifeq (,$(wildcard $(MALWARE)))
@@ -71,6 +70,16 @@ test_elastic: start_elasticsearch malware
 	@echo "===> ${NAME} test_elastic found"
 	docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH_URL=elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE)
 	http localhost:9200/malice/_search | jq . > docs/elastic.json
+
+.PHONY: test_extern_elastic
+test_extern_elastic: malware
+	@echo "===> ${NAME} test_extern_elastic found"
+	docker run --rm \
+	-e MALICE_ELASTICSEARCH_URL=${MALICE_ELASTICSEARCH_URL} \
+	-e MALICE_ELASTICSEARCH_USERNAME=${MALICE_ELASTICSEARCH_USERNAME} \
+	-e MALICE_ELASTICSEARCH_PASSWORD=${MALICE_ELASTICSEARCH_PASSWORD} \
+	-e MALICE_ELASTICSEARCH_INDEX="test" \
+	-v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE)
 
 .PHONY: test_markdown
 test_markdown:
