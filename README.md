@@ -2,7 +2,7 @@
 
 # malice-pdf
 
-[![Circle CI](https://circleci.com/gh/malice-plugins/pdf.png?style=shield)](https://circleci.com/gh/malice-plugins/pdf) [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org) [![Docker Stars](https://img.shields.io/docker/stars/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Pulls](https://img.shields.io/docker/pulls/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Image](https://img.shields.io/badge/docker%20image-58.9MB-blue.svg)](https://hub.docker.com/r/malice/pdf/)
+[![Circle CI](https://circleci.com/gh/malice-plugins/pdf.png?style=shield)](https://circleci.com/gh/malice-plugins/pdf) [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org) [![Docker Stars](https://img.shields.io/docker/stars/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Pulls](https://img.shields.io/docker/pulls/malice/pdf.svg)](https://hub.docker.com/r/malice/pdf/) [![Docker Image](https://img.shields.io/badge/docker%20image-58.8MB-blue.svg)](https://hub.docker.com/r/malice/pdf/)
 
 Malice PDF Plugin
 
@@ -14,12 +14,12 @@ Malice PDF Plugin
 
 - [malice/alpine](https://hub.docker.com/r/malice/alpine/)
 
-### Installation
+## Installation
 
-1.  Install [Docker](https://www.docker.io/).
-2.  Download [trusted build](https://hub.docker.com/r/malice/pdf/) from public [DockerHub](https://hub.docker.com): `docker pull malice/pdf`
+1. Install [Docker](https://www.docker.io/).
+2. Download [trusted build](https://hub.docker.com/r/malice/pdf/) from public [DockerHub](https://hub.docker.com): `docker pull malice/pdf`
 
-### Usage
+## Usage
 
 ```bash
 $ docker run --rm -v /path/to/malware:/malware malice/pdf --help
@@ -39,7 +39,7 @@ Commands:
   web   start web service
 ```
 
-#### Scanning
+### Scanning
 
 ```bash
 $ docker run --rm -v /path/to/malware:/malware malice/pdf scan --help
@@ -56,7 +56,7 @@ Options:
   -c, --callback ENDPOINT  POST results back to Malice webhook
                            [$MALICE_ENDPOINT]
   --elasticsearch HOST     elasticsearch address for Malice to store results
-                           [$MALICE_ELASTICSEARCH]
+                           [$MALICE_ELASTICSEARCH_URL]
   --timeout SECS           malice plugin timeout (default: 10)
                            [$MALICE_TIMEOUT]
   --extract PATH           where to extract the embedded objects to
@@ -285,25 +285,25 @@ s<<++<<            /Names [(eicar-dropper.doc) 7 0 R]    /OpenAction 9 0 R
 - [To create a PDF scan micro-service](https://github.com/malice-plugins/pdf/blob/master/docs/web.md)
 - [To post results to a webhook](https://github.com/malice-plugins/pdf/blob/master/docs/callback.md)
 
-### Issues
+## Issues
 
 Find a bug? Want more features? Find something missing in the documentation? Let me know! Please don't hesitate to [file an issue](https://github.com/malice-plugins/pdf/issues/new)
 
-### CHANGELOG
+## CHANGELOG
 
 See [`CHANGELOG.md`](https://github.com/malice-plugins/pdf/blob/master/CHANGELOG.md)
 
-### Contributing
+## Contributing
 
 [See all contributors on GitHub](https://github.com/malice-plugins/pdf/graphs/contributors).
 
 Please update the [CHANGELOG.md](https://github.com/malice-plugins/pdf/blob/master/CHANGELOG)
 
-### Credits
+## Credits
 
 Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucket.org/cse-assemblyline/alsvc_pdfid) and [alsvc_peepdf](https://bitbucket.org/cse-assemblyline/alsvc_peepdf)
 
-### TODO
+## TODO
 
 - [x] add PDFiD
 - [x] add pdf-parser for streams
@@ -314,6 +314,6 @@ Heavily (if not entirely) influenced by CSE-CST's [alsvc_pdfid](https://bitbucke
 - [ ] add smart timeout to avoid DoS samples
 - [ ] use https://github.com/unidoc/unidoc instead?? I miss you golang, I miss you soooo hard :tired_face:
 
-### License
+## License
 
 MIT Copyright (c) 2016-2018 **blacktop**
