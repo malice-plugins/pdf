@@ -4,7 +4,7 @@
 
 .circleci*
 docs*
-test*
+tests*
 .vscode*
 .idea*
 venv*
@@ -27,3 +27,4 @@ pdf.py
 Dockerfile.ubuntu
 
 peepdf*
+embedded_file_obj_8

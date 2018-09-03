@@ -1,4 +1,3 @@
-
 ### pdf
 #### [PDFiD]
  - **PDF Header:** `%PDF-1.1`
@@ -34,35 +33,27 @@
 
 ##### Embedded File
 > **Score:** `50`
+
+**Reasons:**
  - `/EmbeddedFile` flag(s) detected
 
 ##### Triage
 > **Score:** `150`
+
+**Reasons:**
 - `/JS`: indicating javascript is present in the file.
 - `/JavaScript`: indicating javascript is present in the file.
 - `/OpenAction`: indicating automatic action to be performed when the page/document is viewed.
 
 ##### Suspicious Properties
 > **Score:** `50`
+
+**Reasons:**
 - Page count of 1
 
 #### [pdf-parser]
 
-##### Stats
-- `Comment: 3`
-- `XREF: 1`
-- `Trailer: 1`
-- `StartXref: 1`
-- `Indirect object: 9`
-- ` 1: 5`
-- `/Action 1: 9`
-- `/Catalog 1: 1`
-- `/EmbeddedFile 1: 8`
-- `/Filespec 1: 7`
-- `/Font 1: 6`
-- `/Outlines 1: 2`
-- `/Page 1: 4`
-- `/Pages 1: 3`
+
 
 ##### TAGS
 **file_name:**
