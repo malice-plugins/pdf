@@ -3,8 +3,11 @@
 # See the file 'LICENSE' for copying permission.
 
 import hashlib
+from os import path
 
 from jinja2 import Template
+
+from constants import ROOT
 
 
 def sha256_checksum(filename, block_size=65536):
@@ -17,5 +20,5 @@ def sha256_checksum(filename, block_size=65536):
 
 def json2markdown(json_data):
     """Convert JSON output to MarkDown table"""
-    with open('utils/markdown.jinja2') as f:
+    with open(path.join(ROOT, 'utils/markdown.jinja2')) as f:
         return Template(f.read()).render(pdfid=json_data.get('pdfid'), streams=json_data.get('streams'))
