@@ -3,15 +3,16 @@ ORG=malice
 NAME=pdf
 CATEGORY=document
 VERSION=$(shell cat VERSION)
-MALWARE="test/eicar.pdf"
-EXTRACT="/malware/test/dump"
-MALICE_SCANID ?= ""
+
+MALWARE=tests/eicar.pdf
+EXTRACT=/malware/tests/dump
+MALICE_SCANID?=
 
 all: build size tag test_all
 
 .PHONY: build
 build:
-	cd $(VERSION); docker build -t $(ORG)/$(NAME):$(VERSION) .
+	docker build -t $(ORG)/$(NAME):$(VERSION) .
 
 .PHONY: size
 size:
@@ -36,21 +37,21 @@ tar:
 .PHONY: start_elasticsearch
 start_elasticsearch:
 ifeq ("$(shell docker inspect -f {{.State.Running}} elasticsearch)", "true")
-	@echo "===> elasticsearch already running"
-else
-	@echo "===> Starting elasticsearch"
+	@echo "===> elasticsearch already running.  Stopping now..."
 	@docker rm -f elasticsearch || true
-	@docker run --init -d --name elasticsearch -p 9200:9200 malice/elasticsearch:6.3; sleep 10
 endif
+	@echo "===> Starting elasticsearch"
+	@docker run --init -d --name elasticsearch -p 9200:9200 malice/elasticsearch:6.4; sleep 15
+
 
 .PHONY: malware
 malware:
-ifeq (,$(wildcard test/eicar.pdf))
-	cd test; wget https://didierstevens.com/files/data/pdf-doc-vba-eicar-dropper.zip
-	cd test; unzip -P EICARdropper pdf-doc-vba-eicar-dropper.zip
-	cd test; mv pdf-doc-vba-eicar-dropper.pdf eicar.pdf
-	cd test; rm pdf-doc-vba-eicar-dropper.zip
-	cd test; echo "TEST" > not.pdf
+ifeq (,$(wildcard $(MALWARE)))
+	cd tests; wget https://didierstevens.com/files/data/pdf-doc-vba-eicar-dropper.zip
+	cd tests; unzip -P EICARdropper pdf-doc-vba-eicar-dropper.zip
+	cd tests; mv pdf-doc-vba-eicar-dropper.pdf eicar.pdf
+	cd tests; rm pdf-doc-vba-eicar-dropper.zip
+	cd tests; echo "TEST" > not.pdf
 endif
 
 .PHONY: test_all
@@ -61,27 +62,21 @@ test: malware
 	@echo "===> ${NAME} --help"
 	@docker run --rm $(ORG)/$(NAME):$(VERSION); sleep 10
 	@echo "===> ${NAME} malware test"
-	@docker run --rm -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE) | jq . > docs/results.json
+	@docker run --rm -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan $(MALWARE) | jq . > docs/results.json
+	# @docker run --rm -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
 .PHONY: test_elastic
 test_elastic: start_elasticsearch malware
 	@echo "===> ${NAME} test_elastic found"
-	docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH=elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE)
-	# @echo "===> ${NAME} test_elastic NOT found"
-	# docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH=elasticsearch $(ORG)/$(NAME):$(VERSION) -V --api ${MALICE_VT_API} lookup $(MISSING_HASH)
+	docker run --rm --link elasticsearch -e MALICE_ELASTICSEARCH_URL=elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE)
 	http localhost:9200/malice/_search | jq . > docs/elastic.json
 
 .PHONY: test_markdown
-test_markdown: test_elastic
+test_markdown:
 	@echo "===> ${NAME} test_markdown"
 	# http localhost:9200/malice/_search query:=@docs/query.json | jq . > docs/elastic.json
 	cat docs/elastic.json | jq -r '.hits.hits[] ._source.plugins.${CATEGORY}.${NAME}.markdown' > docs/SAMPLE.md
-
-.PHONY: test_malice
-test_malice:
-	@echo "===> $(ORG)/$(NAME):$(VERSION) testing with running malice elasticsearch DB (update existing sample)"
-	@docker run --rm -e MALICE_SCANID=$(MALICE_SCANID) -e MALICE_ELASTICSEARCH=elasticsearch --link malice-elastic:elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -t -vvvv $(MALWARE)
 
 .PHONY: test_web
 test_web: malware stop
@@ -92,16 +87,14 @@ test_web: malware stop
 	@docker logs $(NAME)
 	@docker rm -f $(NAME)
 
+.PHONY: test_malice
+test_malice:
+	@echo "===> $(ORG)/$(NAME):$(VERSION) testing with running malice elasticsearch DB (update existing sample)"
+	@docker run --rm -e MALICE_SCANID=$(MALICE_SCANID) -e MALICE_ELASTICSEARCH_URL=http://elasticsearch:9200 --link malice-elastic:elasticsearch -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -t -vvvv $(MALWARE)
+
 .PHONY: run
 run: stop ## Run docker container
 	@docker run --init -d --name $(NAME) -p 9200:9200 $(ORG)/$(NAME):$(VERSION)
-
-.PHONY: ssh
-ssh: ## SSH into docker image
-	@echo "===> Starting elasticsearch"
-	@docker rm -f elasticsearch || true
-	@docker run --init -d --name elasticsearch -p 9200:9200 blacktop/elasticsearch
-	@docker run -it --rm --link elasticsearch -v $(PWD):/malware --entrypoint=sh $(ORG)/$(NAME):$(VERSION)
 
 .PHONY: stop
 stop: ## Kill running docker containers
@@ -123,7 +116,7 @@ ci-size: ci-build
 clean: clean_pyc ## Clean docker image and stop all running containers
 	docker-clean stop
 	docker rmi $(ORG)/$(NAME):$(VERSION) || true
-	docker rmi $(ORG)/$(NAME):dev || true
+	docker rmi $(ORG)/$(NAME):latest || true
 	rm $(MALWARE) || true
 	rm README.md.bu || true
 
