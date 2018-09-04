@@ -89,6 +89,7 @@ def pdf():
     '--timeout',
     default=lambda: os.environ.get('MALICE_TIMEOUT', 10),
     help='malice plugin timeout (default: 10) [$MALICE_TIMEOUT]',
+    type=click.INT,
     metavar='SECS')
 @click.option('-d', '--dump', is_flag=True, help='dump possibly embedded binaries')
 @click.option(

@@ -61,7 +61,7 @@ test: malware
 	@echo "===> ${NAME} --help"
 	@docker run --rm $(ORG)/$(NAME):$(VERSION); sleep 10
 	@echo "===> ${NAME} malware test"
-	@docker run --rm -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan $(MALWARE) | jq . > docs/results.json
+	@docker run --rm -v $(PWD):/malware -e MALICE_TIMEOUT=120 $(ORG)/$(NAME):$(VERSION) scan $(MALWARE) | jq . > docs/results.json
 	# @docker run --rm -v $(PWD):/malware $(ORG)/$(NAME):$(VERSION) scan -vvvv -d --output $(EXTRACT) $(MALWARE) | jq . > docs/results.json
 	@cat docs/results.json | jq .
 
