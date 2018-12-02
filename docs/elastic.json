@@ -1,5 +1,5 @@
 {
-  "took": 66,
+  "took": 62,
   "timed_out": false,
   "_shards": {
     "total": 5,
@@ -17,7 +17,7 @@
         "_id": "86a96ec03ba8242c1486456d67ee17f919128754846dbb3bdf5e836059091dba",
         "_score": 1,
         "_source": {
-          "scan_date": "2018-09-03T15:42:06.420117",
+          "scan_date": "2018-12-02T05:08:50.719887",
           "plugins": {
             "document": {
               "pdf": {
